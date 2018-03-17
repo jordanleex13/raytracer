@@ -7,10 +7,11 @@
 ***********************************************************/
 
 #include <cmath>
+#include <iostream>
+#include <cassert>
 #include "scene_object.h"
 
-bool UnitSquare::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
-		const Matrix4x4& modelToWorld) {
+bool UnitSquare::intersect(Ray3D &ray, const Matrix4x4 &worldToModel, const Matrix4x4 &modelToWorld) {
 	// TODO: implement intersection code for UnitSquare, which is
 	// defined on the xy-plane, with vertices (0.5, 0.5, 0), 
 	// (-0.5, 0.5, 0), (-0.5, -0.5, 0), (0.5, -0.5, 0), and normal
@@ -23,11 +24,47 @@ bool UnitSquare::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 	// HINT: Remember to first transform the ray into object space  
 	// to simplify the intersection test.
 
+	// convert to object space
+	Point3D eye = worldToModel * ray.origin;
+	Vector3D eyeToPlane = worldToModel * ray.dir;
+
+	// get necessary vectors for calculation
+	Vector3D N = Vector3D(0.0, 0.0, 1.0);
+	Point3D p0 = Point3D(0.0, 0.0, 0.0);	// any point on plane would work
+	if (eyeToPlane.dot(N) == 0) {
+		std::cout << "No intersection or light is in plane" << std::endl;
+		return false;
+	}
+	// equation to determine time of intersection
+	double t = (p0-eye).dot(N) / (eyeToPlane.dot(N));
+	if (t <= 0)
+		return false;
+
+    // use line equation to get intersection point
+	Point3D planeIntersection = eye + t * eyeToPlane;
+	double x = planeIntersection[0];
+	double y = planeIntersection[1];
+
+	// check if inside unit square
+	if (x < 0.5 && x > -0.5 && y < 0.5 && y > -0.5) {
+		// check if already a valid intersection, update if this one is closer
+		if (ray.intersection.none || t < ray.intersection.t_value) {
+
+			ray.intersection.point = modelToWorld * planeIntersection;	// convert back to world
+
+			// TODO i assume i don't need to do the inverse transpose and that the function does it for me
+			ray.intersection.normal = transNorm(worldToModel, N);
+			ray.intersection.normal.normalize();
+
+			ray.intersection.t_value = t;
+			ray.intersection.none = false;	// there is an intersection
+			return true;
+		}
+	}
 	return false;
 }
 
-bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
-		const Matrix4x4& modelToWorld) {
+bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Matrix4x4& modelToWorld) {
 	// TODO: implement intersection code for UnitSphere, which is centred 
 	// on the origin.  
 	//
@@ -38,6 +75,43 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 	// HINT: Remember to first transform the ray into object space  
 	// to simplify the intersection test.
 
+	// convert to object space
+	Point3D eye = worldToModel * ray.origin;
+	Vector3D eyeToPlane = worldToModel * ray.dir;
+
+	// Center of unit sphere
+	Point3D center(0.0, 0.0, 0.0);
+
+	Vector3D centerToEye = eye - center;
+	// solution to t is a quadratic equation after doing the math
+	double a = eyeToPlane.dot(eyeToPlane);
+	double b = 2 * eyeToPlane.dot(centerToEye);
+	double c = centerToEye.dot(centerToEye) - 1; // 1 is R^2
+
+	double determinant = b*b - 4*a*c;
+	if (determinant < 0)
+		return false;
+	double t1 = (-b + std::sqrt(determinant)) / (2*a);
+	double t2 = (-b - std::sqrt(determinant)) / (2*a);
+
+	// select the smallest t -> first intersection
+	double t = std::min(t1, t2);
+	assert(t > 0);
+
+	// use line equation to get intersection point
+	Point3D sphereIntersection = eye + t * eyeToPlane;
+
+	// check if already a valid intersection, update if this one is closer
+	if (ray.intersection.none || t < ray.intersection.t_value) {
+		ray.intersection.point = modelToWorld * sphereIntersection;
+
+		ray.intersection.normal = transNorm(worldToModel, sphereIntersection - center);
+		ray.intersection.normal.normalize();
+
+		ray.intersection.t_value = t;
+		ray.intersection.none = false;
+		return true;
+	}
 	return false;
 }
 

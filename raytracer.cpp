@@ -12,6 +12,7 @@
 #include <cmath>
 #include <iostream>
 #include <cstdlib>
+#include <cassert>
 
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 	for (size_t i = 0; i < scene.size(); ++i) {
@@ -82,10 +83,18 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			imagePlane[2] = -1;
 
 			
-			
+			// create ray in view space (camera space)
 			Ray3D ray;
-			// TODO: Convert ray to world space  
-			
+            ray.origin = Point3D(0,0,0);
+            ray.dir = imagePlane - ray.origin;
+
+            // convert ray to world space
+            ray.origin = viewToWorld * ray.origin;
+            ray.dir = viewToWorld * ray.dir;
+
+            // after converting the camera position and ray origin should be same
+			assert(ray.origin[0] == camera.eye[0] && ray.origin[1] == camera.eye[1] && ray.origin[2] == camera.eye[2]);
+
 			Color col = shadeRay(ray, scene, light_list); 
 			image.setColorAtPixel(i, j, col);			
 		}
