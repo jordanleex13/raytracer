@@ -5,6 +5,7 @@
 ***********************************************************/
 
 #include <cstdlib>
+#include <iostream>
 #include "raytracer.h"
 
 int main(int argc, char* argv[])
@@ -77,6 +78,8 @@ int main(int argc, char* argv[])
 	for (size_t i = 0; i < light_list.size(); ++i) {
 		delete light_list[i];
 	}
+
+	std::cout << "Finished main" << std::endl;
 
 	return 0;
 }
