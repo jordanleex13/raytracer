@@ -10,6 +10,13 @@
 #include <algorithm>
 #include "light_source.h"
 
+#define SCENE_SIGNATURE 0
+#define NO_SPECULAR 1
+#define FULL_PHONG 2
+
+static const int RENDER_TYPE = FULL_PHONG;
+
+
 void PointLight::shade(Ray3D& ray) {
 	// TODO: implement this function to fill in values for ray.col 
 	// using phong shading.  Make sure your vectors are normalized, and
@@ -39,7 +46,13 @@ void PointLight::shade(Ray3D& ray) {
     spec.clamp();
 
     // assign the colour to the ray
-    ray.col = amb + diff + spec;
+    if (RENDER_TYPE == SCENE_SIGNATURE) {
+        ray.col = mat->diffuse;
+    } else if (RENDER_TYPE == NO_SPECULAR) {
+        ray.col = amb + diff;
+    } else if (RENDER_TYPE == FULL_PHONG) {
+        ray.col = amb + diff + spec;
+    }
     ray.col.clamp();
 }
 
