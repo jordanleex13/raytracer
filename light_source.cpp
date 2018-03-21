@@ -46,13 +46,15 @@ void PointLight::shade(Ray3D& ray) {
     spec.clamp();
 
     // assign the colour to the ray
+    Color temp(0.0,0.0,0.0);
     if (RENDER_TYPE == SCENE_SIGNATURE) {
-        ray.col = mat->diffuse;
+        temp = mat->diffuse;
     } else if (RENDER_TYPE == NO_SPECULAR) {
-        ray.col = amb + diff;
+        temp = amb + diff;
     } else if (RENDER_TYPE == FULL_PHONG) {
-        ray.col = amb + diff + spec;
+        temp = amb + diff + spec;
     }
+    ray.col = ray.col + temp; // color is additive
     ray.col.clamp();
 }
 
