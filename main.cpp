@@ -34,6 +34,9 @@ int main(int argc, char* argv[])
 	Material jade(Color(0, 0, 0), Color(0.54,0.89,0.63),
 		Color(0.316228,0.316228,0.316228),
 		12.8);
+	Material test(Color(0, 0, 0), Color(0.5,0.2,0.9),
+		Color(1,1,1),
+		1000.0);
 
 	// Defines a point light source.
 	PointLight* pLight = new PointLight(Point3D(0,0,5), Color(0.9,0.9,0.9));
@@ -44,6 +47,8 @@ int main(int argc, char* argv[])
 	scene.push_back(sphere);
 	SceneNode* plane = new SceneNode(new UnitSquare(), &jade);
 	scene.push_back(plane);
+	SceneNode* plane2 = new SceneNode(new UnitSquare(), &test);
+	scene.push_back(plane2);
 
 	// Apply some transformations to the sphere and unit square.
 	double factor1[3] = { 1.0, 2.0, 1.0 };
@@ -53,9 +58,14 @@ int main(int argc, char* argv[])
 	sphere->scale(Point3D(0, 0, 0), factor1);
 
 	double factor2[3] = { 6.0, 6.0, 6.0 };
-	plane->translate(Vector3D(0, 0, -7));
+	plane->translate(Vector3D(0, 0, -15));
 	plane->rotate('z', 45);
 	plane->scale(Point3D(0, 0, 0), factor2);
+
+	double factor3[3] = { 3.0, 3.0, 3.0 };
+	plane2->translate(Vector3D(0, 0, -10));
+	plane2->rotate('z', 45);
+	plane2->scale(Point3D(0, 0, 0), factor3);
 
 	// Render the scene, feel free to make the image smaller for
 	// testing purposes.	

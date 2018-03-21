@@ -16,6 +16,8 @@
 #include <random>
 #include <limits>
 
+#define NUM_ANTIALIASING_RAY 3
+
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 	for (size_t i = 0; i < scene.size(); ++i) {
 		SceneNode* node = scene[i];
@@ -120,34 +122,44 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 	double factor = (double(image.height)/2)/tan(camera.fov*M_PI/360.0);
 
 	viewToWorld = camera.initInvViewMatrix();
+	std::cout << "Height: " << image.height << " Width: " << image.width << std::endl;
+
+	Point3D origin(0, 0, 0);
 
 	// Construct a ray for each pixel.
 	for (int i = 0; i < image.height; i++) {
-		for (int j = 0; j < image.width; j++) {
+		for (int j = 0; j < image.width; j++) {								
 			// Sets up ray origin and direction in view space, 
 			// image plane is at z = -1.
-			Point3D origin(0, 0, 0);
 			Point3D imagePlane;
-			imagePlane[0] = (-double(image.width)/2 + 0.5 + j)/factor;
-			imagePlane[1] = (-double(image.height)/2 + 0.5 + i)/factor;
 			imagePlane[2] = -1;
+			Color col;
 
-			
-			// create ray in view space (camera space)
-			Ray3D ray;
-            ray.origin = origin;
-            ray.dir = imagePlane - ray.origin;
+			for(int m = 0; m < NUM_ANTIALIASING_RAY; m++){
+				for(int n = 0; n < NUM_ANTIALIASING_RAY; n++){
+					imagePlane[0] = (-double(image.width)/2 + j + 1.0/NUM_ANTIALIASING_RAY * m + 1.0/NUM_ANTIALIASING_RAY/2)/factor;
+					imagePlane[1] = (-double(image.height)/2 + i + 1.0/NUM_ANTIALIASING_RAY * n + 1.0/NUM_ANTIALIASING_RAY/2)/factor;
+					
+					// create ray in view space (camera space)
+					Ray3D ray;
+		            ray.origin = origin;
+		            ray.dir = imagePlane - ray.origin;
 
-            // convert ray to world space
-            ray.origin = viewToWorld * ray.origin;
-            ray.dir = viewToWorld * ray.dir;
+		            // convert ray to world space
+		            ray.origin = viewToWorld * ray.origin;
+		            ray.dir = viewToWorld * ray.dir;
 
-            // after converting the camera position and ray origin should be same
-			assert(ray.origin[0] == camera.eye[0] && ray.origin[1] == camera.eye[1] && ray.origin[2] == camera.eye[2]);
+		            // after converting the camera position and ray origin should be same
+					assert(ray.origin[0] == camera.eye[0] && ray.origin[1] == camera.eye[1] && ray.origin[2] == camera.eye[2]);
 
-            int depth = 5;  // number of bounces before ray dies
-			Color col = shadeRay(ray, scene, light_list, depth);
-			image.setColorAtPixel(i, j, col);			
+		            int depth = 5;  // number of bounces before ray dies
+					Color subcol = shadeRay(ray, scene, light_list, depth);
+					col[0] += subcol[0]/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;
+					col[1] += subcol[1]/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;
+					col[2] += subcol[2]/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;
+				}
+			}
+			image.setColorAtPixel(i, j, col);
 		}
 	}
 }
