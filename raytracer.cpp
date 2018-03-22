@@ -40,13 +40,28 @@ void Raytracer::computeTransforms(Scene& scene) {
 	}
 }
 
-void Raytracer::computeShading(Ray3D& ray, LightList& light_list) {
+void Raytracer::computeShading(Ray3D& ray, Scene& scene, LightList& light_list) {
 	for (size_t  i = 0; i < light_list.size(); ++i) {
 		LightSource* light = light_list[i];
-		
-		// Each lightSource provides its own shading function.
-		// Implement shadows here if needed.
-		light->shade(ray);        
+		// shoot a ray in the reverse light direction 
+		auto 	lightPos = light->get_position();
+		auto 	intersection = ray.intersection.point;
+		auto 	reverseLightVect = lightPos - intersection;
+		auto 		distToLight = reverseLightVect.length();
+		reverseLightVect.normalize();
+
+		auto		startPos = intersection + 0.001*reverseLightVect;
+		Ray3D reverseRay(startPos, reverseLightVect);
+		traverseScene(scene, reverseRay);
+		// if the reverse ray hit any other object, it is a shadow
+		if(!reverseRay.intersection.none){
+			if(reverseRay.intersection.t_value <= distToLight) {
+        		ray.col = ray.intersection.mat->ambient;
+        		ray.col.clamp();
+        	}
+		} else {		
+			light->shade(ray); 	
+		}       
 	}
 }
 
@@ -99,7 +114,7 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 
 	// Don't bother shading if the ray didn't hit anything.
 	if (!ray.intersection.none) {
-        computeShading(ray, light_list);
+        computeShading(ray, scene, light_list);
         col = ray.col;
 
 //#define REFLECTION
@@ -122,7 +137,6 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 	double factor = (double(image.height)/2)/tan(camera.fov*M_PI/360.0);
 
 	viewToWorld = camera.initInvViewMatrix();
-	std::cout << "Height: " << image.height << " Width: " << image.width << std::endl;
 
 	Point3D origin(0, 0, 0);
 
@@ -134,7 +148,6 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			Point3D imagePlane;
 			imagePlane[2] = -1;
 			Color col;
-
 			for(int m = 0; m < NUM_ANTIALIASING_RAY; m++){
 				for(int n = 0; n < NUM_ANTIALIASING_RAY; n++){
 					imagePlane[0] = (-double(image.width)/2 + j + 1.0/NUM_ANTIALIASING_RAY * m + 1.0/NUM_ANTIALIASING_RAY/2)/factor;

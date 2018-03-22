@@ -29,7 +29,7 @@ private:
 
 	// After intersection, calculate the color of the ray by shading it
 	// with all light sources in the scene.
-	void computeShading(Ray3D& ray, LightList& light_list);
+	void computeShading(Ray3D& ray, Scene& scene, LightList& light_list);
 
 	// Precompute the modelToWorld and worldToModel transformations for each
     // object in the scene.
