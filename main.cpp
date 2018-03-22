@@ -47,8 +47,8 @@ int main(int argc, char* argv[])
 	scene.push_back(sphere);
 	SceneNode* plane = new SceneNode(new UnitSquare(), &jade);
 	scene.push_back(plane);
-	SceneNode* plane2 = new SceneNode(new UnitSquare(), &test);
-	scene.push_back(plane2);
+	SceneNode* cylinder = new SceneNode(new UnitCylinder(), &test);
+	scene.push_back(cylinder);
 
 	// Apply some transformations to the sphere and unit square.
 	double factor1[3] = { 1.0, 2.0, 1.0 };
@@ -57,15 +57,15 @@ int main(int argc, char* argv[])
 	sphere->rotate('z', 45);
 	sphere->scale(Point3D(0, 0, 0), factor1);
 
-	double factor2[3] = { 6.0, 6.0, 6.0 };
+	double factor2[3] = { 12.0, 12.0, 12.0 };
 	plane->translate(Vector3D(0, 0, -15));
 	plane->rotate('z', 45);
 	plane->scale(Point3D(0, 0, 0), factor2);
 
-	double factor3[3] = { 3.0, 3.0, 3.0 };
-	plane2->translate(Vector3D(0, 0, -10));
-	plane2->rotate('z', 45);
-	plane2->scale(Point3D(0, 0, 0), factor3);
+	double factor3[3] = { 1.0, 1.0, 1.0 };
+	cylinder->translate(Vector3D(2, 2, -10));
+	// cylinder->rotate('z', 45);
+	cylinder->scale(Point3D(0, 0, 0), factor3);
 
 	// Render the scene, feel free to make the image smaller for
 	// testing purposes.	

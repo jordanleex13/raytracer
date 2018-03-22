@@ -77,3 +77,8 @@ public:
 				const Matrix4x4& modelToWorld);
 };
 
+class UnitCylinder : public SceneObject {
+public:
+	bool intersect(Ray3D& ray, const Matrix4x4& worldToModel, 
+				const Matrix4x4& modelToWorld);
+};
