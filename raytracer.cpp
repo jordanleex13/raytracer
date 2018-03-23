@@ -44,13 +44,13 @@ void Raytracer::computeShading(Ray3D& ray, Scene& scene, LightList& light_list) 
 	for (size_t  i = 0; i < light_list.size(); ++i) {
 		LightSource* light = light_list[i];
 		// shoot a ray in the reverse light direction 
-		auto 	lightPos = light->get_position();
-		auto 	intersection = ray.intersection.point;
-		auto 	reverseLightVect = lightPos - intersection;
-		auto 		distToLight = reverseLightVect.length();
+		auto lightPos = light->get_position();
+		auto intersection = ray.intersection.point;
+		auto reverseLightVect = lightPos - intersection;
+		auto distToLight = reverseLightVect.length();
 		reverseLightVect.normalize();
 
-		auto		startPos = intersection + 0.001*reverseLightVect;
+		auto startPos = intersection + 0.0001*reverseLightVect;
 		Ray3D reverseRay(startPos, reverseLightVect);
 		traverseScene(scene, reverseRay);
 		// if the reverse ray hit any other object, it is a shadow

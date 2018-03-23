@@ -62,12 +62,17 @@ bool UnitCylinder::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Ma
 	if (t == -1) {return false;}
 	// use line equation to get intersection point
 	Point3D intersection = eye + t * eyeToPlane;
+	Vector3D normal;
+	if (intersection[3]==0.5){normal=transNorm(worldToModel, Vector3D(0,0,1));}
+	if (intersection[3]==(-0.5)){normal=transNorm(worldToModel, Vector3D(0,0,-1));}
+	else {normal=transNorm(worldToModel, Vector3D(intersection[0], intersection[1], 0));}
 
 	// check if already a valid intersection, update if this one is closer
 	if (ray.intersection.none || t < ray.intersection.t_value) {
+		std::cout << "( " << intersection[0] << ", " << intersection[1] << ", " << intersection[2] << ")" << std::endl;
 		ray.intersection.point = modelToWorld * intersection;
 
-		ray.intersection.normal = transNorm(worldToModel, intersection - center);
+		ray.intersection.normal = normal;
 		ray.intersection.normal.normalize();
 
 		ray.intersection.t_value = t;

@@ -34,8 +34,8 @@ int main(int argc, char* argv[])
 	Material jade(Color(0, 0, 0), Color(0.54,0.89,0.63),
 		Color(0.316228,0.316228,0.316228),
 		12.8);
-	Material test(Color(0, 0, 0), Color(0.5,0.2,0.9),
-		Color(1,1,1),
+	Material test(Color(0, 0, 0), Color(1.0,1.0,1.0),
+		Color(1.0,1.0,1.0),
 		1000.0);
 
 	// Defines a point light source.
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 	scene.push_back(sphere);
 	SceneNode* plane = new SceneNode(new UnitSquare(), &jade);
 	scene.push_back(plane);
-	SceneNode* cylinder = new SceneNode(new UnitCylinder(), &test);
+	SceneNode* cylinder = new SceneNode(new UnitCylinder(), &gold);
 	scene.push_back(cylinder);
 
 	// Apply some transformations to the sphere and unit square.
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 
 	double factor3[3] = { 1.0, 1.0, 1.0 };
 	cylinder->translate(Vector3D(2, 2, -10));
-	// cylinder->rotate('z', 45);
+	cylinder->rotate('x', 90);
 	cylinder->scale(Point3D(0, 0, 0), factor3);
 
 	// Render the scene, feel free to make the image smaller for
