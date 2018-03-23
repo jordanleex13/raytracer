@@ -1,1 +1,6 @@
 *.idea
+*.o
+*.bmp
+CMakeLists.txt
+cmake-build-debug/
+raytracer
