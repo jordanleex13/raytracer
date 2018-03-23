@@ -69,7 +69,7 @@ bool UnitCylinder::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Ma
 
 	// check if already a valid intersection, update if this one is closer
 	if (ray.intersection.none || t < ray.intersection.t_value) {
-		std::cout << "( " << intersection[0] << ", " << intersection[1] << ", " << intersection[2] << ")" << std::endl;
+		// std::cout << "( " << intersection[0] << ", " << intersection[1] << ", " << intersection[2] << ")" << std::endl;
 		ray.intersection.point = modelToWorld * intersection;
 
 		ray.intersection.normal = normal;

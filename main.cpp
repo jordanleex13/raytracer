@@ -8,17 +8,15 @@
 #include <iostream>
 #include "raytracer.h"
 
+void scene_basic(int width, int height);
+
 int main(int argc, char* argv[])
 {
 	// Build your scene and setup your camera here, by calling 
 	// functions from Raytracer.  The code here sets up an example
 	// scene and renders it from two different view points, DO NOT
 	// change this if you're just implementing part one of the 
-	// assignment.  
-	Raytracer raytracer;
-	LightList light_list;
-	Scene scene;   
-
+	// assignment.   
 	int width = 320;
 	int height = 240;
 
@@ -27,6 +25,17 @@ int main(int argc, char* argv[])
 		height = atoi(argv[2]);
 	}
 	
+	scene_basic(width, height);
+
+	std::cout << "Finished main" << std::endl;
+
+	return 0;
+}
+
+void scene_basic(int width, int height){
+	Raytracer raytracer;
+	LightList light_list;
+	Scene scene;
 	// Define materials for shading.
 	Material gold(Color(0.3, 0.3, 0.3), Color(0.75164,0.60648,0.22648),
 		Color(0.628281, 0.555802, 0.366065),
@@ -89,7 +98,4 @@ int main(int argc, char* argv[])
 		delete light_list[i];
 	}
 
-	std::cout << "Finished main" << std::endl;
-
-	return 0;
 }

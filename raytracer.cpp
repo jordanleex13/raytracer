@@ -117,7 +117,7 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
         computeShading(ray, scene, light_list);
         col = ray.col;
 
-//#define REFLECTION
+#define REFLECTION
 #ifdef REFLECTION
         Ray3D reflectedRay;
         getReflectedRay(ray, reflectedRay);
