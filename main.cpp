@@ -43,8 +43,10 @@ void scene_walls(int width, int height) {
 
     Material diffuseR( Color(0.2,0.0,0.0), Color(0.9,0.0,0.0), Color(0.1,0.1,0.1), 1.0);
     Material diffuseG( Color(0.0,0.2,0.0), Color(0.0,0.9,0.0), Color(0.1,0.1,0.1), 1.0);
-    Material specularB( Color(0.0,0.0,0.2), Color(0.0,0.0,0.1), Color(0.1,0.1,0.9), 50.0);
-    Material diffuseY( Color(0.2,0.2,0.0), Color(0.9,0.9,0.0), Color(0.9,0.9,0.1), 1.0);
+    Material specularB( Color(0.0,0.0,0.2), Color(0.0,0.0,0.1), Color(1.0,1.0,1.0), 500.0);
+    Material diffuseY( Color(0.2,0.2,0.0), Color(0.9,0.9,0.0), Color(0.0,0.0,0.0), 1.0);
+
+    Material mirror(Color(0.001, 0.001, 0.001), Color(0.0, 0.0, 0.0), Color(0.999, 0.999, 0.999), 10000.0);
 
     Color darkgrey(0.5,0.5,0.5);
 	Material slate(darkgrey, darkgrey, Color(0.1,0.1,0.1), 1.0);
@@ -59,7 +61,7 @@ void scene_walls(int width, int height) {
     scene.push_back(globeG);
     SceneNode* globeR = new SceneNode(new UnitSphere(), &diffuseR);
     scene.push_back(globeR);
-    SceneNode* globeB = new SceneNode(new UnitSphere(), &specularB);
+    SceneNode* globeB = new SceneNode(new UnitSphere(), &mirror);
     scene.push_back(globeB);
     SceneNode* globeY = new SceneNode(new UnitSphere(), &diffuseY);
     scene.push_back(globeY);
@@ -126,8 +128,8 @@ void scene_basic(int width, int height){
 	scene.push_back(sphere);
 	SceneNode* plane = new SceneNode(new UnitSquare(), &jade);
 	scene.push_back(plane);
-	SceneNode* cylinder = new SceneNode(new UnitCylinder(), &gold);
-	scene.push_back(cylinder);
+//	SceneNode* cylinder = new SceneNode(new UnitCylinder(), &gold);
+//	scene.push_back(cylinder);
 
 	// Apply some transformations to the sphere and unit square.
 	double factor1[3] = { 1.0, 2.0, 1.0 };
@@ -141,10 +143,10 @@ void scene_basic(int width, int height){
 	plane->rotate('z', 45);
 	plane->scale(Point3D(0, 0, 0), factor2);
 
-	double factor3[3] = { 1.0, 1.0, 1.0 };
-	cylinder->translate(Vector3D(2, 2, -10));
-	cylinder->rotate('x', 90);
-	cylinder->scale(Point3D(0, 0, 0), factor3);
+//	double factor3[3] = { 1.0, 1.0, 1.0 };
+//	cylinder->translate(Vector3D(2, 2, -10));
+//	cylinder->rotate('x', 90);
+//	cylinder->scale(Point3D(0, 0, 0), factor3);
 
 	// Render the scene, feel free to make the image smaller for
 	// testing purposes.	

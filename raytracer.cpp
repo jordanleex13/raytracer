@@ -78,31 +78,32 @@ void Raytracer::getReflectedRay(Ray3D& ray, Ray3D& reflectedRay) {
     R.normalize();
 
     // Glossy reflection (see tutorial slides)
-    Vector3D u = R.cross(N);
-    u.normalize();
-    Vector3D v = R.cross(u);
-    v.normalize();
-
-    // TODO probably put this in the class itself to avoid reinitializaiton
-    std::random_device rd;  //Will be used to obtain a seed for the random number engine
-    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_real_distribution<> dis(0.0, 1.0);
-
-    double roughness = 2 * M_PI * (1.0 - ray.intersection.mat->specular_exp); // change roughness if doesn't work
-    // add randomness to reflection
-    double a = dis(gen);
-    double b = dis(gen);
-//        std::cout << a << " " << b << std::endl;
-    double theta = roughness * a;
-    double phi = roughness * b;
-    double x = sin(theta) * cos(phi);
-    double y = sin(theta) * sin(phi);
-    double z = cos(theta);
+//    Vector3D u = R.cross(N);
+//    u.normalize();
+//    Vector3D v = R.cross(u);
+//    v.normalize();
+//
+//    // TODO probably put this in the class itself to avoid reinitializaiton
+//    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+//    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+//    std::uniform_real_distribution<> dis(0.0, 1.0);
+//
+//    // when alpha -> infinity, it's shiny, not rough
+//    double roughness = 2 * M_PI * (1.0 / (ray.intersection.mat->specular_exp + 1.0));
+//    // add randomness to reflection
+//    double a = dis(gen);
+//    double b = dis(gen);
+////        std::cout << a << " " << b << std::endl;
+//    double theta = roughness * a;
+//    double phi = roughness * b;
+//    double x = sin(theta) * cos(phi);
+//    double y = sin(theta) * sin(phi);
+//    double z = cos(theta);
 
     // initialize passed in ray
     reflectedRay.origin = ray.intersection.point;
-    reflectedRay.dir = x*u + y*v + z*R;
-    reflectedRay.dir.normalize();
+    reflectedRay.dir = R;
+//    reflectedRay.dir.normalize();
 }
 
 Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int depth) {
@@ -117,17 +118,23 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
         computeShading(ray, scene, light_list);
         col = ray.col;
 
-//#define REFLECTION
+#define REFLECTION
 #ifdef REFLECTION
-        Ray3D reflectedRay;
-        getReflectedRay(ray, reflectedRay);
 
-        Color reflectedColor = shadeRay(reflectedRay, scene, light_list, depth - 1);
-        col = col + (ray.intersection.mat->specular * reflectedColor); // no += operator for color
+        Color& spec = ray.intersection.mat->specular;
+//        if (spec[0]*spec[0] + spec[1]*spec[1] + spec[2]*spec[2] > 0.5) {
+            Ray3D reflectedRay;
+            getReflectedRay(ray, reflectedRay);
+
+            Color reflectedColor = shadeRay(reflectedRay, scene, light_list, depth - 1);
+            reflectedColor.clamp();
+            col = col + (spec * reflectedColor); // no += operator for color
+            col.clamp();
+//        }
+
 #endif
     }
-    col.clamp();
-	return col; 
+	return col;
 }	
 
 void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Image& image) {
