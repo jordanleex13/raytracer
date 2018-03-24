@@ -12,6 +12,22 @@
 #include "scene_object.h"
 #include <vector>
 
+#define EPSILON 0.0001
+
+BoundingVolume UnitCylinder::computeBoundingVolume(const Matrix4x4 &modelToWorld) {
+	BoundingVolume bvol;
+	// cylinder is radius 1, height = 1
+	Point3D bottomLeft(-1.0-EPSILON, -1.0-EPSILON, -0.50-EPSILON);
+	Point3D topRight(1.0+EPSILON, 1.0+EPSILON, 0.5+EPSILON);
+
+    bvol.bottomLeft = modelToWorld * bottomLeft;
+    bvol.topRight = modelToWorld * topRight;
+
+	std::cout << "Cylinder BV: " << bvol.bottomLeft << " " << bvol.topRight << std::endl;
+
+	return bvol;
+}
+
 bool UnitCylinder::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Matrix4x4& modelToWorld) {
 	// defining a unit cylinder with radius = 1, height = 1, centered at origin (0,0,0)
 
@@ -82,6 +98,21 @@ bool UnitCylinder::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Ma
 	return false;
 }
 
+
+BoundingVolume UnitSquare::computeBoundingVolume(const Matrix4x4 &modelToWorld) {
+	BoundingVolume bvol;
+	// make bounding box slightly bigger than actual plane
+	Point3D bottomLeft(-0.50 - EPSILON, -0.50 - EPSILON, 0.0 - EPSILON);
+	Point3D topRight(0.50 + EPSILON, 0.50 + EPSILON, 0.0 + EPSILON);
+
+    bvol.bottomLeft = modelToWorld * bottomLeft;
+    bvol.topRight = modelToWorld * topRight;
+
+	std::cout << "Square BV: " << bvol.bottomLeft << " " << bvol.topRight << std::endl;
+
+	return bvol;
+}
+
 bool UnitSquare::intersect(Ray3D &ray, const Matrix4x4 &worldToModel, const Matrix4x4 &modelToWorld) {
 	// TODO: implement intersection code for UnitSquare, which is
 	// defined on the xy-plane, with vertices (0.5, 0.5, 0), 
@@ -133,6 +164,23 @@ bool UnitSquare::intersect(Ray3D &ray, const Matrix4x4 &worldToModel, const Matr
 		}
 	}
 	return false;
+}
+
+
+BoundingVolume UnitSphere::computeBoundingVolume(const Matrix4x4 &modelToWorld) {
+	BoundingVolume bvol;
+	// make bounding box just the unit cube
+    double bl = -1.0-EPSILON;
+    double tr = 1.0+EPSILON;
+	Point3D bottomLeft(bl,bl,bl);
+	Point3D topRight(tr,tr,tr);
+
+    bvol.bottomLeft = modelToWorld * bottomLeft;
+    bvol.topRight = modelToWorld * topRight;
+
+	std::cout << "Sphere BV: " << bvol.bottomLeft << " " << bvol.topRight << std::endl;
+
+	return bvol;
 }
 
 bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Matrix4x4& modelToWorld) {

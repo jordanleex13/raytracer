@@ -9,6 +9,7 @@
 
 
 #include "raytracer.h"
+#include "spatial.h"
 #include <cmath>
 #include <iostream>
 #include <cstdlib>
@@ -36,7 +37,13 @@ void Raytracer::computeTransforms(Scene& scene) {
 		SceneNode* node = scene[i];
 
 		node->modelToWorld = node->trans;
-		node->worldToModel = node->invtrans; 
+		node->worldToModel = node->invtrans;
+
+        // critical to do this before you add scene object
+        node->computeBoundingVolume();
+
+        addSceneObject(node, (unsigned) i);
+
 	}
 }
 
@@ -44,13 +51,13 @@ void Raytracer::computeShading(Ray3D& ray, Scene& scene, LightList& light_list) 
 	for (size_t  i = 0; i < light_list.size(); ++i) {
 		LightSource* light = light_list[i];
 		// shoot a ray in the reverse light direction 
-		auto lightPos = light->get_position();
-		auto intersection = ray.intersection.point;
-		auto reverseLightVect = lightPos - intersection;
-		auto distToLight = reverseLightVect.length();
+		Point3D lightPos = light->get_position();
+		Point3D intersection = ray.intersection.point;
+		Vector3D reverseLightVect = lightPos - intersection;
+		double distToLight = reverseLightVect.length();
 		reverseLightVect.normalize();
 
-		auto startPos = intersection + 0.0001*reverseLightVect;
+		Point3D startPos = intersection + 0.0001*reverseLightVect;
 		Ray3D reverseRay(startPos, reverseLightVect);
 		traverseScene(scene, reverseRay);
 		// if the reverse ray hit any other object, it is a shadow
@@ -117,7 +124,7 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
         computeShading(ray, scene, light_list);
         col = ray.col;
 
-#define REFLECTION
+//#define REFLECTION
 #ifdef REFLECTION
         Ray3D reflectedRay;
         getReflectedRay(ray, reflectedRay);
@@ -142,8 +149,8 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 
 	// Construct a ray for each pixel.
 	for (int i = 0; i < image.height; i++) {
-		for (int j = 0; j < image.width; j++) {								
-			// Sets up ray origin and direction in view space, 
+		for (int j = 0; j < image.width; j++) {
+			// Sets up ray origin and direction in view space,
 			// image plane is at z = -1.
 			Point3D imagePlane;
 			imagePlane[2] = -1;
@@ -152,7 +159,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 				for(int n = 0; n < NUM_ANTIALIASING_RAY; n++){
 					imagePlane[0] = (-double(image.width)/2 + j + 1.0/NUM_ANTIALIASING_RAY * m + 1.0/NUM_ANTIALIASING_RAY/2)/factor;
 					imagePlane[1] = (-double(image.height)/2 + i + 1.0/NUM_ANTIALIASING_RAY * n + 1.0/NUM_ANTIALIASING_RAY/2)/factor;
-					
+
 					// create ray in view space (camera space)
 					Ray3D ray;
 		            ray.origin = origin;

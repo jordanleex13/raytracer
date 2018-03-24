@@ -11,6 +11,11 @@
 #include "util.h"
 #include <vector>
 
+struct BoundingVolume {
+    Point3D bottomLeft;
+    Point3D topRight;
+};
+
 // All primitives should provide an intersection function.  
 // To create more primitives, inherit from SceneObject.
 // Namely, you can create, Sphere, Cylinder, etc... classes
@@ -19,8 +24,10 @@ class SceneObject {
 public:
 	// Returns true if an intersection occured, false otherwise.
 	virtual bool intersect(Ray3D&, const Matrix4x4&, const Matrix4x4&) = 0;
+    virtual BoundingVolume computeBoundingVolume(const Matrix4x4&) = 0;
 	virtual ~SceneObject() {}
 };
+
 
 // Scene node containing information about an object: geometry, material, 
 // tranformations.
@@ -46,6 +53,10 @@ struct SceneNode {
 	// Apply scaling about a fixed point origin.
 	void scale(Point3D origin, double factor[3]);
 
+	void computeBoundingVolume() {
+		this->bvol = obj->computeBoundingVolume(modelToWorld);
+	}
+
 	// Pointer to geometry primitive, used for intersection.
 	SceneObject* obj;
 	
@@ -58,6 +69,9 @@ struct SceneNode {
 	Matrix4x4 invtrans;
 	Matrix4x4 modelToWorld;
 	Matrix4x4 worldToModel;
+
+	// Bounding box
+	BoundingVolume bvol;
 };
 
 // Scene is simply implemented as a list of nodes. Doesnt support hierarchy(scene graph).
@@ -69,16 +83,19 @@ class UnitSquare : public SceneObject {
 public:
 	bool intersect(Ray3D& ray, const Matrix4x4& worldToModel, 
 				const Matrix4x4& modelToWorld);
+	BoundingVolume computeBoundingVolume(const Matrix4x4& modelToWorld);
 };
 
 class UnitSphere : public SceneObject {
 public:
 	bool intersect(Ray3D& ray, const Matrix4x4& worldToModel, 
 				const Matrix4x4& modelToWorld);
+	BoundingVolume computeBoundingVolume(const Matrix4x4& modelToWorld);
 };
 
 class UnitCylinder : public SceneObject {
 public:
 	bool intersect(Ray3D& ray, const Matrix4x4& worldToModel, 
 				const Matrix4x4& modelToWorld);
+	BoundingVolume computeBoundingVolume(const Matrix4x4& modelToWorld);
 };

@@ -83,6 +83,8 @@ void scene_basic(int width, int height){
 	raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
 	image1.flushPixelBuffer("view1.bmp"); //save rendered image to file
 
+    std::cout << "Finished image 1" << std::endl;
+
 	// Render it from a different point of view.
 	Camera camera2(Point3D(4, 2, 1), Vector3D(-4, -2, -6), Vector3D(0, 1, 0), 60.0);
 	Image image2(width, height);
