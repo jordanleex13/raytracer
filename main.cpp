@@ -10,6 +10,8 @@
 
 void scene_basic(int width, int height);
 
+void scene_walls(int width, int height);
+
 int main(int argc, char* argv[])
 {
 	// Build your scene and setup your camera here, by calling 
@@ -25,11 +27,79 @@ int main(int argc, char* argv[])
 		height = atoi(argv[2]);
 	}
 	
-	scene_basic(width, height);
-
+//	scene_basic(width, height);
+	scene_walls(width, height);
 	std::cout << "Finished main" << std::endl;
 
 	return 0;
+}
+
+void scene_walls(int width, int height) {
+	Raytracer raytracer;
+	LightList light_list;
+	Scene scene;
+    Point3D origin(0,0,0);
+
+
+    Material diffuseR( Color(0.2,0.0,0.0), Color(0.9,0.0,0.0), Color(0.1,0.1,0.1), 1.0);
+    Material diffuseG( Color(0.0,0.2,0.0), Color(0.0,0.9,0.0), Color(0.1,0.1,0.1), 1.0);
+    Material specularB( Color(0.0,0.0,0.2), Color(0.0,0.0,0.1), Color(0.1,0.1,0.9), 50.0);
+    Material diffuseY( Color(0.2,0.2,0.0), Color(0.9,0.9,0.0), Color(0.9,0.9,0.1), 1.0);
+
+    Color darkgrey(0.5,0.5,0.5);
+	Material slate(darkgrey, darkgrey, Color(0.1,0.1,0.1), 1.0);
+
+	// Defines a point light source.
+	PointLight* pLight = new PointLight(Point3D(10,10,10), Color(0.9,0.9,0.9));
+	light_list.push_back(pLight);
+
+	SceneNode* floor = new SceneNode(new UnitSquare(), &slate);
+	scene.push_back(floor);
+    SceneNode* globeG = new SceneNode(new UnitSphere(), &diffuseG);
+    scene.push_back(globeG);
+    SceneNode* globeR = new SceneNode(new UnitSphere(), &diffuseR);
+    scene.push_back(globeR);
+    SceneNode* globeB = new SceneNode(new UnitSphere(), &specularB);
+    scene.push_back(globeB);
+    SceneNode* globeY = new SceneNode(new UnitSphere(), &diffuseY);
+    scene.push_back(globeY);
+
+	// Apply some transformations to the sphere and unit square.
+	double factor1[3] = { 50.0, 50.0, 1.0 };
+	floor->scale(origin, factor1);
+
+    double factor2[3] = {3.0,3.0,3.0};
+    globeG->scale(origin, factor2);
+    globeG->translate(Vector3D(-2, 0, 0));
+    globeR->scale(origin, factor2);
+    globeR->translate(Vector3D(2, 0, 0));
+    globeB->scale(origin, factor2);
+    globeB->translate(Vector3D(0, 1, 0));
+    globeY->scale(origin, factor2);
+    globeY->translate(Vector3D(0, -1.5, 0));
+
+	// Render the scene, feel free to make the image smaller for
+	// testing purposes.
+
+    Point3D cameraPositions[4] = {Point3D(0, -10, 5), Point3D(0, 10, 7), Point3D(10, 0, 10), Point3D(-10, 0, 3)};
+    for (int i = 0; i < 4; i++) {
+        Point3D cameraPos = cameraPositions[i];
+        Camera camera1(cameraPos, origin - cameraPos, Vector3D(0, 0, 1), 60.0);
+        Image image1(width, height);
+        raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
+
+        image1.flushPixelBuffer("view" + std::to_string(i) + ".bmp"); //save rendered image to file
+        std::cout << "Finished " << i << std::endl;
+    }
+
+	// Free memory
+	for (size_t i = 0; i < scene.size(); ++i) {
+		delete scene[i];
+	}
+
+	for (size_t i = 0; i < light_list.size(); ++i) {
+		delete light_list[i];
+	}
 }
 
 void scene_basic(int width, int height){
