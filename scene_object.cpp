@@ -166,11 +166,11 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Matr
 	double t2 = (-b - std::sqrt(determinant)) / (2*a);
 
 	// select the smallest t -> first intersection
+    if (t1 < 0 && t2 < 0)
+        return false;
 	double t = std::min(t1, t2);
-	// assert(t > 0);
-	if (t1 < 0 && t2 < 0) return false;
 	if (t1 < 0) t = t2;
-	if (t2 < 0) t = t1;
+    if (t2 < 0) t = t1;
 
 	// use line equation to get intersection point
 	Point3D sphereIntersection = eye + t * eyeToPlane;

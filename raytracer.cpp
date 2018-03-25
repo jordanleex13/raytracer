@@ -17,6 +17,7 @@
 #include <limits>
 
 #define NUM_ANTIALIASING_RAY 3
+#define EPSILON 0.0001
 
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 	for (size_t i = 0; i < scene.size(); ++i) {
@@ -43,14 +44,18 @@ void Raytracer::computeTransforms(Scene& scene) {
 void Raytracer::computeShading(Ray3D& ray, Scene& scene, LightList& light_list) {
 	for (size_t  i = 0; i < light_list.size(); ++i) {
 		LightSource* light = light_list[i];
-		// shoot a ray in the reverse light direction 
+		light->shade(ray);
+
+//#define SHADOWING
+#ifdef SHADOWING
+		// shoot a ray in the reverse light direction
 		Point3D lightPos = light->get_position();
 		Point3D intersection = ray.intersection.point;
 		Vector3D reverseLightVect = lightPos - intersection;
 		double distToLight = reverseLightVect.length();
 		reverseLightVect.normalize();
 
-		Point3D startPos = intersection + 0.0001*reverseLightVect;
+		Point3D startPos = intersection + EPSILON*reverseLightVect;
 		Ray3D reverseRay(startPos, reverseLightVect);
 		traverseScene(scene, reverseRay);
 		// if the reverse ray hit any other object, it is a shadow
@@ -59,13 +64,12 @@ void Raytracer::computeShading(Ray3D& ray, Scene& scene, LightList& light_list) 
         		ray.col = ray.intersection.mat->ambient;
         		ray.col.clamp();
         	}
-		} else {		
-			light->shade(ray); 	
-		}       
+		}
+#endif
 	}
 }
 
-void Raytracer::getReflectedRay(Ray3D& ray, Ray3D& reflectedRay) {
+Ray3D Raytracer::getReflectedRay(Ray3D& ray) {
 
     Vector3D incident = -ray.dir; // -ray.dir so that the formula for R works
     incident.normalize();
@@ -74,7 +78,7 @@ void Raytracer::getReflectedRay(Ray3D& ray, Ray3D& reflectedRay) {
 
     // Note this is not R in Phong Shading
     // This is the eye to intersection ray that is reflected (nothing to do with light src)
-    Vector3D R = 2*(incident.dot(N))*N - incident;
+    Vector3D R = 2*(incident.dot(N))*N - incident; // ray.dir - 2*( normal.dot(ray.dir) * normal );
     R.normalize();
 
     // Glossy reflection (see tutorial slides)
@@ -100,10 +104,10 @@ void Raytracer::getReflectedRay(Ray3D& ray, Ray3D& reflectedRay) {
 //    double y = sin(theta) * sin(phi);
 //    double z = cos(theta);
 
-    // initialize passed in ray
-    reflectedRay.origin = ray.intersection.point;
-    reflectedRay.dir = R;
-//    reflectedRay.dir.normalize();
+    // initialize reflected ray
+	// origin is slightly offset
+    Ray3D reflectedRay(ray.intersection.point + EPSILON * R, R);
+    return reflectedRay;
 }
 
 Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int depth) {
@@ -120,21 +124,16 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 
 #define REFLECTION
 #ifdef REFLECTION
-
         Color& spec = ray.intersection.mat->specular;
-//        if (spec[0]*spec[0] + spec[1]*spec[1] + spec[2]*spec[2] > 0.5) {
-            Ray3D reflectedRay;
-            getReflectedRay(ray, reflectedRay);
+        Ray3D reflectedRay = getReflectedRay(ray);
 
-            Color reflectedColor = shadeRay(reflectedRay, scene, light_list, depth - 1);
-            reflectedColor.clamp();
-            col = col + (spec * reflectedColor); // no += operator for color
-            col.clamp();
-//        }
+        Color reflectedColor = shadeRay(reflectedRay, scene, light_list, depth - 1);
+        col = col + (spec * reflectedColor); // no += operator for color
 
 #endif
     }
-	return col;
+    col.clamp();
+    return col;
 }	
 
 void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Image& image) {
@@ -155,6 +154,24 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			Point3D imagePlane;
 			imagePlane[2] = -1;
 			Color col;
+
+#define ANTI_ALIASING
+#ifndef ANTI_ALIASING
+            imagePlane[0] = (-double(image.width)/2 + 0.5 + j)/factor;
+			imagePlane[1] = (-double(image.height)/2 + 0.5 + i)/factor;
+            Ray3D ray;
+            ray.origin = origin;
+            ray.dir = imagePlane - ray.origin;
+
+            // convert ray to world space
+            ray.origin = viewToWorld * ray.origin;
+            ray.dir = viewToWorld * ray.dir;
+
+            int depth = 5;  // number of bounces before ray dies
+    		col = shadeRay(ray, scene, light_list, depth);
+#endif
+
+#ifdef ANTI_ALIASING
 			for(int m = 0; m < NUM_ANTIALIASING_RAY; m++){
 				for(int n = 0; n < NUM_ANTIALIASING_RAY; n++){
 					imagePlane[0] = (-double(image.width)/2 + j + 1.0/NUM_ANTIALIASING_RAY * m + 1.0/NUM_ANTIALIASING_RAY/2)/factor;
@@ -172,13 +189,14 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 		            // after converting the camera position and ray origin should be same
 					assert(ray.origin[0] == camera.eye[0] && ray.origin[1] == camera.eye[1] && ray.origin[2] == camera.eye[2]);
 
-		            int depth = 5;  // number of bounces before ray dies
+		            int depth = 10;  // number of bounces before ray dies
 					Color subcol = shadeRay(ray, scene, light_list, depth);
 					col[0] += subcol[0]/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;
 					col[1] += subcol[1]/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;
 					col[2] += subcol[2]/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;
 				}
 			}
+#endif
 			image.setColorAtPixel(i, j, col);
 		}
 	}

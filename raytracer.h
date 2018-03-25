@@ -35,6 +35,6 @@ private:
     // object in the scene.
 	void computeTransforms(Scene& scene);
 
-	void getReflectedRay(Ray3D& ray, Ray3D& reflectedRay);
+	Ray3D getReflectedRay(Ray3D& ray);
 
 };

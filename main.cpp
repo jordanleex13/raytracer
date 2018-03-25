@@ -66,8 +66,11 @@ void scene_walls(int width, int height) {
     SceneNode* globeY = new SceneNode(new UnitSphere(), &diffuseY);
     scene.push_back(globeY);
 
+	SceneNode* wall = new SceneNode(new UnitSphere(), &specularB);
+	scene.push_back(wall);
+
 	// Apply some transformations to the sphere and unit square.
-	double factor1[3] = { 50.0, 50.0, 1.0 };
+	double factor1[3] = { 500.0, 500.0, 1.0 };
 	floor->scale(origin, factor1);
 
     double factor2[3] = {3.0,3.0,3.0};
@@ -80,6 +83,8 @@ void scene_walls(int width, int height) {
     globeY->scale(origin, factor2);
     globeY->translate(Vector3D(0, -1.5, 0));
 
+	wall->scale(origin, factor2);
+	wall->translate(Vector3D(0,4,0));
 	// Render the scene, feel free to make the image smaller for
 	// testing purposes.
 
