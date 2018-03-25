@@ -19,6 +19,12 @@
 #define NUM_ANTIALIASING_RAY 3
 #define EPSILON 0.0001
 
+// Toggle options on/off
+#define ANTI_ALIASING
+#define SHADOWING
+#define SOFT_SHADOWS
+
+
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 	for (size_t i = 0; i < scene.size(); ++i) {
 		SceneNode* node = scene[i];
@@ -42,14 +48,22 @@ void Raytracer::computeTransforms(Scene& scene) {
 }
 
 void Raytracer::computeShading(Ray3D& ray, Scene& scene, LightList& light_list) {
-	for (size_t  i = 0; i < light_list.size(); ++i) {
+	for (size_t i = 0; i < light_list.size(); ++i) {
 		LightSource* light = light_list[i];
 		light->shade(ray);
 
-//#define SHADOWING
 #ifdef SHADOWING
 		// shoot a ray in the reverse light direction
-		Point3D lightPos = light->get_position();
+        Point3D lightPos = light->get_position();
+
+        // sample from random unit sphere to get soft shadow effect
+#ifdef SOFT_SHADOWS
+        double r = 0.9 * generateRandom();  // TODO play around with r value to get better looking soft shadows
+        double theta = 2 * M_PI * generateRandom();
+        double phi = 2 * M_PI * generateRandom();
+        lightPos = lightPos + Vector3D(r*cos(theta)*sin(phi), r*sin(theta)*sin(phi), r*cos(phi));
+#endif
+
 		Point3D intersection = ray.intersection.point;
 		Vector3D reverseLightVect = lightPos - intersection;
 		double distToLight = reverseLightVect.length();
@@ -61,7 +75,7 @@ void Raytracer::computeShading(Ray3D& ray, Scene& scene, LightList& light_list) 
 		// if the reverse ray hit any other object, it is a shadow
 		if(!reverseRay.intersection.none){
 			if(reverseRay.intersection.t_value <= distToLight) {
-        		ray.col = ray.intersection.mat->ambient;
+        		ray.col = ray.intersection.mat->ambient;    // overwrites ray colour
         		ray.col.clamp();
         	}
 		}
@@ -88,9 +102,7 @@ Ray3D Raytracer::getReflectedRay(Ray3D& ray) {
 //    v.normalize();
 //
 //    // TODO probably put this in the class itself to avoid reinitializaiton
-//    std::random_device rd;  //Will be used to obtain a seed for the random number engine
-//    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-//    std::uniform_real_distribution<> dis(0.0, 1.0);
+
 //
 //    // when alpha -> infinity, it's shiny, not rough
 //    double roughness = 2 * M_PI * (1.0 / (ray.intersection.mat->specular_exp + 1.0));
@@ -155,7 +167,6 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			imagePlane[2] = -1;
 			Color col;
 
-#define ANTI_ALIASING
 #ifndef ANTI_ALIASING
             imagePlane[0] = (-double(image.width)/2 + 0.5 + j)/factor;
 			imagePlane[1] = (-double(image.height)/2 + 0.5 + i)/factor;

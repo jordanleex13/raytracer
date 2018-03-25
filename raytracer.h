@@ -16,7 +16,11 @@ class Raytracer {
 public:
 	// Renders 3D scene to an image given camera and lights setup.
 	void render(Camera& camera, Scene& scene, LightList& light_list, Image& image);
-		
+
+	Raytracer() {
+		srand(418);	// seed to make randomness predictable
+	}
+
 private:
 
 	// Return the color of the ray after intersection and shading, call 
@@ -36,5 +40,10 @@ private:
 	void computeTransforms(Scene& scene);
 
 	Ray3D getReflectedRay(Ray3D& ray);
+
+	double generateRandom(double low=0.0, double high=1.0) {
+		double f = (double)rand() / RAND_MAX;
+		return low + f * (high - low);
+	}
 
 };
