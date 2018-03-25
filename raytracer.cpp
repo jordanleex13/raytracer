@@ -16,6 +16,9 @@
 #include <random>
 #include <limits>
 
+// ANTIALIASING FEATURE: 
+// The higher NUM_ANTIALIASING_RAY gives better anti-aliasing performance, takes more time.
+// Set NUM_ANTIALIASING_RAY to 1 to disable this feature.
 #define NUM_ANTIALIASING_RAY 3
 
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {

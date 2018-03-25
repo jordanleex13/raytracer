@@ -37,4 +37,6 @@ private:
 
 	void getReflectedRay(Ray3D& ray, Ray3D& reflectedRay);
 
+	// compute refracted rays from the given ray
+	void Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay);
 };
