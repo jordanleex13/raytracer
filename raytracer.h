@@ -36,7 +36,8 @@ private:
 	void computeTransforms(Scene& scene);
 
 	Ray3D getReflectedRay(Ray3D& ray);
+	void getReflectedRay(Ray3D& ray, Ray3D& reflectedRay);
 
 	// compute refracted rays from the given ray
-	void Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay);
+	void getRefractedRay(Ray3D& ray, Ray3D& refractedRay);
 };
