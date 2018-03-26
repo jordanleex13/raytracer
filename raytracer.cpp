@@ -19,7 +19,7 @@
 // ANTIALIASING FEATURE: 
 // The higher NUM_ANTIALIASING_RAY gives better anti-aliasing performance, takes more time.
 // Set NUM_ANTIALIASING_RAY to 1 to disable this feature.
-#define NUM_ANTIALIASING_RAY 3
+#define NUM_ANTIALIASING_RAY 1
 
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 	for (size_t i = 0; i < scene.size(); ++i) {
@@ -47,13 +47,13 @@ void Raytracer::computeShading(Ray3D& ray, Scene& scene, LightList& light_list) 
 	for (size_t  i = 0; i < light_list.size(); ++i) {
 		LightSource* light = light_list[i];
 		// shoot a ray in the reverse light direction 
-		auto lightPos = light->get_position();
-		auto intersection = ray.intersection.point;
-		auto reverseLightVect = lightPos - intersection;
-		auto distToLight = reverseLightVect.length();
+        Point3D lightPos = light->get_position();
+        Point3D intersection = ray.intersection.point;
+        Vector3D reverseLightVect = lightPos - intersection;
+        double distToLight = reverseLightVect.length();
 		reverseLightVect.normalize();
 
-		auto startPos = intersection + 0.0001*reverseLightVect;
+		Point3D startPos = intersection + 0.0001*reverseLightVect;
 		Ray3D reverseRay(startPos, reverseLightVect);
 		traverseScene(scene, reverseRay);
 		// if the reverse ray hit any other object, it is a shadow
@@ -108,8 +108,52 @@ void Raytracer::getReflectedRay(Ray3D& ray, Ray3D& reflectedRay) {
     reflectedRay.dir.normalize();
 }
 
-void Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay) {
+bool Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay, float& transmittance) {
 
+    Vector3D incident = -ray.dir; // -ray.dir so that the formula for R works
+    incident.normalize();
+    Vector3D N = ray.intersection.normal;
+    N.normalize();
+
+    // refraction coefficient of air and material
+    float n_air = 1.0;
+    float n_mat = ray.intersection.mat->n_refr;
+
+    if (n_mat==0) { return false;}
+
+    float cos_in = incident.dot(N);
+    float theta_in = acos(cos_in);
+    float n_in, n_out;
+    if (cos_in < 0.0){
+    	// ray is shooting from the object to the air
+    	n_in = n_mat;
+    	n_out = n_air;
+    	theta_in = 2.0*M_PI - theta_in;
+    } else {
+    	// ray is shooting from the air to the object
+    	n_in = n_air;
+    	n_out = n_mat;
+    }
+
+    float ratio_n = n_in/n_out;
+    float cos_out = sqrt(1.0 - ratio_n*ratio_n*(1.0 - cos_in*cos_in));
+    Vector3D Rr = ratio_n*incident + (ratio_n*cos_in - cos_out)*N;
+
+    // http://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
+    float R0 = pow((n_in - n_out)/(n_in + n_out), 2.0);
+    // Reflectance.
+    float R = R0 + (1.0 - R0)*(1.0 - cos_in);
+    // Transmittance.
+    transmittance = 1.0 - R;
+	
+	// std::cout << "Ray: (" << ray.dir[0] << ", " << ray.dir[1] << ", " << ray.dir[2] << ")" << std::endl; 
+	// std::cout << "refraction: (" << Rr[0] << ", " << Rr[1] << ", " << Rr[2] << ")" << std::endl;
+    // initialize passed in ray
+    refractedRay.origin = ray.intersection.point;
+    refractedRay.dir = Rr;
+    refractedRay.dir.normalize();
+
+    return true;
 }
 
 Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int depth) {
@@ -132,6 +176,18 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
         Color reflectedColor = shadeRay(reflectedRay, scene, light_list, depth - 1);
         col = col + (ray.intersection.mat->specular * reflectedColor); // no += operator for color
 #endif
+
+#define REFRACTION
+#ifdef REFRACTION 
+        Ray3D refractedRay;
+        float transmittance;
+        if (getRefractedRay(ray, refractedRay, transmittance)){
+            // TODO: add color by transmittance
+            Color refractedColor = shadeRay(refractedRay, scene, light_list, depth - 1);
+            col = col + transmittance*refractedColor;
+        }
+#endif
+
     }
     col.clamp();
 	return col; 
