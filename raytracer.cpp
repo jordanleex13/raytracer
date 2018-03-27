@@ -31,7 +31,6 @@
 #define REFLECTION
 
 
-
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 	for (size_t i = 0; i < scene.size(); ++i) {
 		SceneNode* node = scene[i];
@@ -191,13 +190,15 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
         col = ray.col;
 
 #ifdef REFLECTION
+        Color& spec = ray.intersection.mat->specular;
         Ray3D reflectedRay = getReflectedRay(ray);
 
         Color reflectedColor = shadeRay(reflectedRay, scene, light_list, depth - 1);
-        col = col + (ray.intersection.mat->specular * reflectedColor); // no += operator for color
+        col = col + (spec * reflectedColor); // no += operator for color
+
 #endif
 
-#ifdef REFRACTION
+#ifdef REFRACTION 
         Ray3D refractedRay;
         float transmittance;
         if (getRefractedRay(ray, refractedRay, transmittance)){
