@@ -12,6 +12,10 @@ void scene_basic(int width, int height);
 
 void scene_walls(int width, int height);
 
+void scene_spheres(int, int);
+
+static Point3D origin(0,0,0);
+
 int main(int argc, char* argv[])
 {
 	// Build your scene and setup your camera here, by calling 
@@ -26,15 +30,157 @@ int main(int argc, char* argv[])
 		width = atoi(argv[1]);
 		height = atoi(argv[2]);
 	}
+    std::cout << "Width: " << width << " height: " << height << std::endl;
 	
 //	scene_basic(width, height);
-	scene_walls(width, height);
+//	scene_spheres(width, height);
+//    scene_walls(width, height);
 	std::cout << "Finished main" << std::endl;
 
 	return 0;
 }
 
+// taken from
 void scene_walls(int width, int height) {
+    Point3D eye(0, 2, 10);
+    Vector3D view(0, 0, -1);
+    Vector3D up(0, 1, 0);
+    double fov = 60;
+    double aperture = 0.6;
+    double focalLength = 12;
+
+    Raytracer raytracer;
+    LightList light_list;
+    Scene scene;
+
+
+    Material gold(Color(0.3, 0.3, 0.3),
+                  Color(0.75164, 0.60648, 0.22648),
+                  Color(0.628281, 0.555802, 0.366065),
+                  51.2);
+
+    Material jade(Color(0, 0, 0),
+                  Color(0.54, 0.89, 0.63),
+                  Color(0.316228, 0.316228, 0.316228),
+                  12.8);
+
+    Material red(Color(0.1, 0.0, 0.0),
+                 Color(0.4, 0.4, 0.4),
+                 Color(0.6, 0.05, 0.05),
+                 1);
+
+    Material blue(Color(0.0, 0.0, 0.1),
+                  Color(0.4, 0.4, 0.4),
+                  Color(0.05, 0.05, 0.6),
+                  1);
+
+    Material white(Color(0.01, 0.01, 0.01),
+                   Color(0.5, 0.5, 0.5),
+                   Color(0.5, 0.5, 0.5),
+                   1);
+
+    Material earth(Color(0.1, 0.1, 0.1),
+                   Color(0.8, 0.8, 0.8),
+                   Color(0.1, 0.1, 0.1),
+                   10);
+
+    Material silver(Color(0.19125, 0.19125, 0.19125),
+                    Color(0.50754, 0.50754, 0.50754),
+                    Color(0.508273, 0.508273, 0.508273),
+                    100);
+
+    Material glass(Color(0.001, 0.001, 0.001),
+                   Color(0.0, 0.0, 0.0),
+                   Color(0.999, 0.999, 0.999),
+                   10000);
+
+    Material mirror(Color(0.001, 0.001, 0.001),
+                    Color(0.0, 0.0, 0.0),
+                    Color(0.999, 0.999, 0.999),
+                    10000);
+
+    Material glossyMirror(Color(0.01, 0.01, 0.01),
+                          Color(0.1, 0.1, 0.1),
+                          Color(0.9, 0.9, 0.9),
+                          1000);
+
+    Material board(Color(0.01, 0.01, 0.01),
+                   Color(0.09, 0.09, 0.09),
+                   Color(0.9, 0.9, 0.9),
+                   10000);
+
+    // Defines a point light source.
+    PointLight* pLight = new PointLight(Point3D(0,6,3), Color(0.2, 0.2, 0.2), Color(0.8, 0.8, 0.8), Color(0.8, 0.8, 0.8));
+    light_list.push_back(pLight);
+
+    // Construct scene
+    SceneNode* floor = new SceneNode(new UnitSquare(), &glossyMirror);
+    SceneNode* ceiling = new SceneNode(new UnitSquare(), &white);
+    SceneNode* leftWall = new SceneNode(new UnitSquare(), &blue);
+    SceneNode* rightWall = new SceneNode(new UnitSquare(), &red);
+    SceneNode* backWall = new SceneNode(new UnitSquare(), &white);
+    SceneNode* cylinder = new SceneNode(new UnitCylinder(), &gold);
+    SceneNode* earthSphere = new SceneNode(new UnitSphere(), &earth);
+    SceneNode* mirrorSphere = new SceneNode(new UnitSphere(), &mirror);
+    SceneNode* glassSphere = new SceneNode(new UnitSphere(), &glass);
+
+    scene.push_back(floor);
+    scene.push_back(ceiling);
+    scene.push_back(leftWall);
+    scene.push_back(rightWall);
+    scene.push_back(backWall);
+//    scene.push_back(cylinder);
+    scene.push_back(earthSphere);
+    scene.push_back(mirrorSphere);
+    scene.push_back(glassSphere);
+
+
+    // Apply transformations
+    double wallScale[3] = { 100.0, 100.0, 100.0 };
+    floor->translate(Vector3D(0, -3, 0));
+    floor->rotate('x', -90);
+    floor->scale(origin, wallScale);
+
+    backWall->translate(Vector3D(0, 0, -7));
+    backWall->scale(origin, wallScale);
+
+    leftWall->translate(Vector3D(-7, 0, 0));
+    leftWall->rotate('y', 90);
+    leftWall->scale(origin, wallScale);
+
+    rightWall->translate(Vector3D(7, 0, 0));
+    rightWall->rotate('y', -90);
+    rightWall->scale(origin, wallScale);
+
+    ceiling->translate(Vector3D(0, 7, 0));
+    ceiling->rotate('x', 90);
+    ceiling->scale(origin, wallScale);
+
+//    double cylinderScale[3] = { 1.5, 2.0, 1.5 };
+//    cylinder, Vector3D(-4, -2, -4));
+//    cylinder, origin, cylinderScale);
+
+    double sphereScale[3] = { 2.0, 2.0, 2.0 };
+    earthSphere->translate(Vector3D(3, 3, -3));
+    earthSphere->rotate('y', -25);
+    earthSphere->rotate('z', -23.5);
+    earthSphere->scale(origin, sphereScale);
+
+    mirrorSphere->translate(Vector3D(-4, 0.9, -4));
+    mirrorSphere->scale(origin, sphereScale);
+
+    glassSphere->translate(Vector3D(1, -0.9, -0.5));
+
+    Point3D cameraPos = eye;
+    Camera camera1(cameraPos, view, up, fov);
+    Image image1(width, height);
+    raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
+
+    image1.flushPixelBuffer("viewWalls.bmp"); //save rendered image to file
+    std::cout << "Finished walls" << std::endl;
+}
+
+void scene_spheres(int width, int height) {
 	Raytracer raytracer;
 	LightList light_list;
 	Scene scene;
@@ -47,6 +193,7 @@ void scene_walls(int width, int height) {
     Material diffuseY( Color(0.2,0.2,0.0), Color(0.9,0.9,0.0), Color(0.0,0.0,0.0), 1.0);
 
     Material mirror(Color(0.001, 0.001, 0.001), Color(0.0, 0.0, 0.0), Color(0.999, 0.999, 0.999), 10000.0);
+	Material glossy(Color(0.01, 0.01, 0.01), Color(0.1, 0.1, 0.1), Color(0.9, 0.9, 0.9),1000.0);
 
     Color darkgrey(0.5,0.5,0.5);
 	Material slate(darkgrey, darkgrey, Color(0.1,0.1,0.1), 1.0);
@@ -141,17 +288,17 @@ void scene_basic(int width, int height){
 	sphere->translate(Vector3D(0, 0, -5));
 	sphere->rotate('x', -45);
 	sphere->rotate('z', 45);
-	sphere->scale(Point3D(0, 0, 0), factor1);
+	sphere->scale(origin, factor1);
 
 	double factor2[3] = { 12.0, 12.0, 12.0 };
 	plane->translate(Vector3D(0, 0, -15));
 	plane->rotate('z', 45);
-	plane->scale(Point3D(0, 0, 0), factor2);
+	plane->scale(origin, factor2);
 
 //	double factor3[3] = { 1.0, 1.0, 1.0 };
 //	cylinder->translate(Vector3D(2, 2, -10));
 //	cylinder->rotate('x', 90);
-//	cylinder->scale(Point3D(0, 0, 0), factor3);
+//	cylinder->scale(origin, factor3);
 
 	// Render the scene, feel free to make the image smaller for
 	// testing purposes.	

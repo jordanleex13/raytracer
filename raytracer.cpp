@@ -23,6 +23,7 @@
 #define ANTI_ALIASING
 #define SHADOWING
 #define SOFT_SHADOWS
+#define GLOSSY
 
 
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
@@ -95,30 +96,31 @@ Ray3D Raytracer::getReflectedRay(Ray3D& ray) {
     Vector3D R = 2*(incident.dot(N))*N - incident; // ray.dir - 2*( normal.dot(ray.dir) * normal );
     R.normalize();
 
-    // Glossy reflection (see tutorial slides)
-//    Vector3D u = R.cross(N);
-//    u.normalize();
-//    Vector3D v = R.cross(u);
-//    v.normalize();
-//
-//    // TODO probably put this in the class itself to avoid reinitializaiton
-
-//
-//    // when alpha -> infinity, it's shiny, not rough
-//    double roughness = 2 * M_PI * (1.0 / (ray.intersection.mat->specular_exp + 1.0));
-//    // add randomness to reflection
-//    double a = dis(gen);
-//    double b = dis(gen);
-////        std::cout << a << " " << b << std::endl;
-//    double theta = roughness * a;
-//    double phi = roughness * b;
-//    double x = sin(theta) * cos(phi);
-//    double y = sin(theta) * sin(phi);
-//    double z = cos(theta);
-
-    // initialize reflected ray
-	// origin is slightly offset
     Ray3D reflectedRay(ray.intersection.point + EPSILON * R, R);
+
+#ifdef GLOSSY
+    // Glossy reflection (see tutorial slides)
+    Vector3D u = R.cross(N);
+    u.normalize();
+    Vector3D v = R.cross(u);
+    v.normalize();
+
+    // when alpha -> infinity, it's shiny, not rough
+    // when roughness -> 0, theta phi -> 0, thus xy -> 0, z->1
+    double roughness = 2 * M_PI * (1.0 / (ray.intersection.mat->specular_exp + 1.0));
+    double theta = roughness * generateRandom();
+    double phi = roughness * generateRandom();
+    double x = sin(theta) * cos(phi);
+    double y = sin(theta) * sin(phi);
+    double z = cos(theta);
+
+    // direction
+    reflectedRay.dir = x * u + y * v + z * R;
+    reflectedRay.dir.normalize();
+
+    // origin is slightly offset
+    reflectedRay.origin = ray.intersection.point + EPSILON * reflectedRay.dir;
+#endif
     return reflectedRay;
 }
 
