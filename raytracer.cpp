@@ -16,6 +16,9 @@
 #include <random>
 #include <limits>
 
+// ANTIALIASING FEATURE: 
+// The higher NUM_ANTIALIASING_RAY gives better anti-aliasing performance, takes more time.
+// Set NUM_ANTIALIASING_RAY to 1 to disable this feature.
 #define NUM_ANTIALIASING_RAY 3
 #define EPSILON 0.0001
 
@@ -24,6 +27,9 @@
 #define SHADOWING
 #define SOFT_SHADOWS
 #define GLOSSY
+//#define REFRACTION
+#define REFLECTION
+
 
 
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
@@ -124,6 +130,54 @@ Ray3D Raytracer::getReflectedRay(Ray3D& ray) {
     return reflectedRay;
 }
 
+bool Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay, float& transmittance) {
+
+    Vector3D incident = -ray.dir; // -ray.dir so that the formula for R works
+    incident.normalize();
+    Vector3D N = ray.intersection.normal;
+    N.normalize();
+
+    // refraction coefficient of air and material
+    float n_air = 1.0;
+    float n_mat = ray.intersection.mat->n_refr;
+
+    if (n_mat==0) { return false;}
+
+    float cos_in = incident.dot(N);
+    float theta_in = acos(cos_in);
+    float n_in, n_out;
+    if (cos_in < 0.0){
+    	// ray is shooting from the object to the air
+    	n_in = n_mat;
+    	n_out = n_air;
+    	theta_in = 2.0*M_PI - theta_in;
+    } else {
+    	// ray is shooting from the air to the object
+    	n_in = n_air;
+    	n_out = n_mat;
+    }
+
+    float ratio_n = n_in/n_out;
+    float cos_out = sqrt(1.0 - ratio_n*ratio_n*(1.0 - cos_in*cos_in));
+    Vector3D Rr = ratio_n*incident + (ratio_n*cos_in - cos_out)*N;
+
+    // http://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
+    float R0 = pow((n_in - n_out)/(n_in + n_out), 2.0);
+    // Reflectance.
+    float R = R0 + (1.0 - R0)*(1.0 - cos_in);
+    // Transmittance.
+    transmittance = 1.0 - R;
+	
+	// std::cout << "Ray: (" << ray.dir[0] << ", " << ray.dir[1] << ", " << ray.dir[2] << ")" << std::endl; 
+	// std::cout << "refraction: (" << Rr[0] << ", " << Rr[1] << ", " << Rr[2] << ")" << std::endl;
+    // initialize passed in ray
+    refractedRay.origin = ray.intersection.point;
+    refractedRay.dir = Rr;
+    refractedRay.dir.normalize();
+
+    return true;
+}
+
 Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int depth) {
     Color col(0.0, 0.0, 0.0);
     if (depth == 0)
@@ -136,18 +190,26 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
         computeShading(ray, scene, light_list);
         col = ray.col;
 
-#define REFLECTION
 #ifdef REFLECTION
-        Color& spec = ray.intersection.mat->specular;
         Ray3D reflectedRay = getReflectedRay(ray);
 
         Color reflectedColor = shadeRay(reflectedRay, scene, light_list, depth - 1);
-        col = col + (spec * reflectedColor); // no += operator for color
-
+        col = col + (ray.intersection.mat->specular * reflectedColor); // no += operator for color
 #endif
+
+#ifdef REFRACTION
+        Ray3D refractedRay;
+        float transmittance;
+        if (getRefractedRay(ray, refractedRay, transmittance)){
+            // TODO: add color by transmittance
+            Color refractedColor = shadeRay(refractedRay, scene, light_list, depth - 1);
+            col = col + transmittance*refractedColor;
+        }
+#endif
+
     }
     col.clamp();
-    return col;
+	return col; 
 }	
 
 void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Image& image) {
@@ -168,7 +230,6 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			Point3D imagePlane;
 			imagePlane[2] = -1;
 			Color col;
-
 #ifndef ANTI_ALIASING
             imagePlane[0] = (-double(image.width)/2 + 0.5 + j)/factor;
 			imagePlane[1] = (-double(image.height)/2 + 0.5 + i)/factor;
@@ -202,7 +263,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 		            // after converting the camera position and ray origin should be same
 					assert(ray.origin[0] == camera.eye[0] && ray.origin[1] == camera.eye[1] && ray.origin[2] == camera.eye[2]);
 
-		            int depth = 10;  // number of bounces before ray dies
+		            int depth = 5;  // number of bounces before ray dies
 					Color subcol = shadeRay(ray, scene, light_list, depth);
 					col[0] += subcol[0]/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;
 					col[1] += subcol[1]/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;

@@ -126,14 +126,21 @@ std::ostream& operator <<(std::ostream& o, const Color& c);
 
 struct Material {
 	Material(Color ambient, Color diffuse, Color specular, double exp) :
-		ambient(ambient), diffuse(diffuse), specular(specular), specular_exp(exp) {
-	}
+		ambient(ambient), diffuse(diffuse), specular(specular), 
+		specular_exp(exp), n_refr(0.0) {}
 
-	// Components for Phong shading.
-	Color ambient; 
+	Material(Color ambient, Color diffuse, Color specular, double exp, float n) :
+		ambient(ambient), diffuse(diffuse), specular(specular), 
+		specular_exp(exp), n_refr(n) {}
+	
+	// Ambient components for Phong shading.
+	Color ambient;
 	Color diffuse;
 	Color specular;
 	double specular_exp;
+
+	// Refraction coefficient 
+	float n_refr;
 };
 
 struct Intersection {

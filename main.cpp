@@ -9,10 +9,9 @@
 #include "raytracer.h"
 
 void scene_basic(int width, int height);
-
 void scene_walls(int width, int height);
-
 void scene_spheres(int, int);
+void scene_refrac(int width, int height);
 
 static Point3D origin(0,0,0);
 
@@ -33,14 +32,71 @@ int main(int argc, char* argv[])
     std::cout << "Width: " << width << " height: " << height << std::endl;
 	
 //	scene_basic(width, height);
-//	scene_spheres(width, height);
+	scene_spheres(width, height);
 //    scene_walls(width, height);
+//	scene_refrac(width, height);
 	std::cout << "Finished main" << std::endl;
 
 	return 0;
 }
 
-// taken from
+void scene_refrac(int width, int height){
+	Raytracer raytracer;
+	LightList light_list;
+	Scene scene;
+    Point3D origin(0,0,0);
+	// Define materials for shading.
+	Material transparent(Color(0.1, 0.1, 0.1), Color(1.0,1.0,0.0),
+		Color(0.5,0.5,0.5),
+		10.0, 1.33);
+
+    Color darkgrey(0.5,0.5,0.5);
+	Material slate(darkgrey, darkgrey, Color(0.1,0.1,0.1), 1.0);
+
+	// Defines a point light source.
+	PointLight* pLight = new PointLight(Point3D(10,10,10), Color(0.9,0.9,0.9));
+	light_list.push_back(pLight);
+
+	
+	// Add a unit square into the scene with material mat.
+	SceneNode* sphere = new SceneNode(new UnitSphere(), &transparent);
+	scene.push_back(sphere);
+	SceneNode* floor = new SceneNode(new UnitSquare(), &slate);
+	scene.push_back(floor);
+
+
+	// Apply some transformations to the sphere and unit square.
+	double factor1[3] = { 5.0, 5.0, 5.0 };
+	sphere->translate(Vector3D(0, 0, 0));
+	sphere->scale(Point3D(0, 0, 0), factor1);
+
+	double factor2[3] = { 500.0, 500.0, 1.0 };
+	floor->scale(Point3D(0, 0, 0), factor2);
+
+	// Render the scene, feel free to make the image smaller for
+	// testing purposes.	
+    Point3D cameraPositions[4] = {Point3D(0, -10, 5), Point3D(0, 10, 7), Point3D(10, 0, 10), Point3D(-10, 0, 3)};
+    for (int i = 0; i < 4; i++) {
+        Point3D cameraPos = cameraPositions[i];
+        Camera camera1(cameraPos, origin - cameraPos, Vector3D(0, 0, 1), 60.0);
+        Image image1(width, height);
+        raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
+
+        image1.flushPixelBuffer("refrac_view" + std::to_string(i) + ".bmp"); //save rendered image to file
+        std::cout << "Finished " << i << std::endl;
+    }
+
+	// Free memory
+	for (size_t i = 0; i < scene.size(); ++i) {
+		delete scene[i];
+	}
+
+	for (size_t i = 0; i < light_list.size(); ++i) {
+		delete light_list[i];
+	}
+
+}
+
 void scene_walls(int width, int height) {
     Point3D eye(0, 2, 10);
     Vector3D view(0, 0, -1);
@@ -242,7 +298,7 @@ void scene_spheres(int width, int height) {
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
 
-        image1.flushPixelBuffer("view" + std::to_string(i) + ".bmp"); //save rendered image to file
+        image1.flushPixelBuffer("sphere_view" + std::to_string(i) + ".bmp"); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 
