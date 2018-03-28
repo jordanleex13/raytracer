@@ -23,12 +23,12 @@
 #define EPSILON 0.0001
 
 // Toggle options on/off
-#define ANTI_ALIASING
-#define SHADOWING
-#define SOFT_SHADOWS
-#define GLOSSY
+//#define ANTI_ALIASING
+//#define SHADOWING
+//#define SOFT_SHADOWS
+//#define GLOSSY
 //#define REFRACTION
-#define REFLECTION
+//#define REFLECTION
 
 
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {

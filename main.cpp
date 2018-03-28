@@ -31,8 +31,8 @@ int main(int argc, char* argv[])
 	}
     std::cout << "Width: " << width << " height: " << height << std::endl;
 	
-//	scene_basic(width, height);
-	scene_spheres(width, height);
+	scene_basic(width, height);
+//	scene_spheres(width, height);
 //    scene_walls(width, height);
 //	scene_refrac(width, height);
 	std::cout << "Finished main" << std::endl;
@@ -323,21 +323,16 @@ void scene_basic(int width, int height){
 	Material jade(Color(0, 0, 0), Color(0.54,0.89,0.63),
 		Color(0.316228,0.316228,0.316228),
 		12.8);
-	Material test(Color(0, 0, 0), Color(1.0,1.0,1.0),
-		Color(1.0,1.0,1.0),
-		1000.0);
 
 	// Defines a point light source.
 	PointLight* pLight = new PointLight(Point3D(0,0,5), Color(0.9,0.9,0.9));
 	light_list.push_back(pLight);
 	
 	// Add a unit square into the scene with material mat.
-	SceneNode* sphere = new SceneNode(new UnitSphere(), &gold);
+	SceneNode* sphere = new SceneNode(new UnitCylinder(), &gold);
 	scene.push_back(sphere);
 	SceneNode* plane = new SceneNode(new UnitSquare(), &jade);
 	scene.push_back(plane);
-//	SceneNode* cylinder = new SceneNode(new UnitCylinder(), &gold);
-//	scene.push_back(cylinder);
 
 	// Apply some transformations to the sphere and unit square.
 	double factor1[3] = { 1.0, 2.0, 1.0 };
@@ -351,13 +346,7 @@ void scene_basic(int width, int height){
 	plane->rotate('z', 45);
 	plane->scale(origin, factor2);
 
-//	double factor3[3] = { 1.0, 1.0, 1.0 };
-//	cylinder->translate(Vector3D(2, 2, -10));
-//	cylinder->rotate('x', 90);
-//	cylinder->scale(origin, factor3);
-
-	// Render the scene, feel free to make the image smaller for
-	// testing purposes.	
+	// Render the scene, feel free to make the image smaller for testing purposes.
 	Camera camera1(Point3D(0, 0, 1), Vector3D(0, 0, -1), Vector3D(0, 1, 0), 60.0);
 	Image image1(width, height);
 	raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
