@@ -31,47 +31,80 @@ int main(int argc, char* argv[])
 	}
     std::cout << "Width: " << width << " height: " << height << std::endl;
 	
-	scene_basic(width, height);
-//	scene_spheres(width, height);
-//    scene_walls(width, height);
-//	scene_refrac(width, height);
+//	scene_basic(width, height);
+	// scene_spheres(width, height);
+   	// scene_walls(width, height);
+	scene_refrac(width, height);
 	std::cout << "Finished main" << std::endl;
 
 	return 0;
 }
 
 void scene_refrac(int width, int height){
+	std::cout << "Rendering refraction secne" << std::endl;
 	Raytracer raytracer;
 	LightList light_list;
 	Scene scene;
     Point3D origin(0,0,0);
 	// Define materials for shading.
-	Material transparent(Color(0.1, 0.1, 0.1), Color(1.0,1.0,0.0),
-		Color(0.5,0.5,0.5),
-		10.0, 1.33);
+	Material transparent(Color(0.1,0.1,0.1), Color(1.0,1.0,1.0), Color(0.0, 0.0, 0.0), 10.0, 1.33, 0.9);
+    Material diffuseR( Color(0.2,0.0,0.0), Color(0.9,0.0,0.0), Color(0.1,0.1,0.1), 1.0);
 
     Color darkgrey(0.5,0.5,0.5);
 	Material slate(darkgrey, darkgrey, Color(0.1,0.1,0.1), 1.0);
 
 	// Defines a point light source.
-	PointLight* pLight = new PointLight(Point3D(10,10,10), Color(0.9,0.9,0.9));
+	PointLight* pLight = new PointLight(Point3D(20,20,20), Color(0.9,0.9,0.9));
 	light_list.push_back(pLight);
 
 	
 	// Add a unit square into the scene with material mat.
 	SceneNode* sphere = new SceneNode(new UnitSphere(), &transparent);
-	scene.push_back(sphere);
+	scene.push_back(sphere);	
+	SceneNode* sphere2 = new SceneNode(new UnitSphere(), &diffuseR);
+	scene.push_back(sphere2);
 	SceneNode* floor = new SceneNode(new UnitSquare(), &slate);
 	scene.push_back(floor);
+	SceneNode* left = new SceneNode(new UnitSquare(), &slate);
+	scene.push_back(left);
+	SceneNode* right = new SceneNode(new UnitSquare(), &slate);
+	scene.push_back(right);
+	SceneNode* top = new SceneNode(new UnitSquare(), &slate);
+	scene.push_back(top);
+	SceneNode* back = new SceneNode(new UnitSquare(), &slate);
+	scene.push_back(back);
 
 
 	// Apply some transformations to the sphere and unit square.
-	double factor1[3] = { 5.0, 5.0, 5.0 };
-	sphere->translate(Vector3D(0, 0, 0));
+	double factor1[3] = { 2.0, 2.0, 2.0 };
+	sphere2->translate(Vector3D(0, 0, 2));
+	sphere2->scale(Point3D(0, 0, 0), factor1);
+
+	sphere->translate(Vector3D(2, 2, 3));
 	sphere->scale(Point3D(0, 0, 0), factor1);
 
 	double factor2[3] = { 500.0, 500.0, 1.0 };
 	floor->scale(Point3D(0, 0, 0), factor2);
+
+	left->scale(Point3D(0, 0, 0), factor2);
+	left->rotate('x', 90);
+	left->translate(Vector3D(0, -100, 0));
+
+
+	right->scale(Point3D(0, 0, 0), factor2);
+	right->rotate('x', 90);
+	right->translate(Vector3D(0, 100, 0));
+
+
+	top->scale(Point3D(0, 0, 0), factor2);
+	top->rotate('x', 90);
+	top->translate(Vector3D(0, 0, 100));
+
+
+	back->scale(Point3D(0, 0, 0), factor2);
+	back->rotate('x', 90);
+	back->translate(Vector3D(-100, 0, 0));
+
 
 	// Render the scene, feel free to make the image smaller for
 	// testing purposes.	
@@ -98,6 +131,7 @@ void scene_refrac(int width, int height){
 }
 
 void scene_walls(int width, int height) {
+	std::cout << "Rendering walls secne" << std::endl;
     Point3D eye(0, 2, 10);
     Vector3D view(0, 0, -1);
     Vector3D up(0, 1, 0);
@@ -145,6 +179,7 @@ void scene_walls(int width, int height) {
                     Color(0.508273, 0.508273, 0.508273),
                     100);
 
+	// Material glass(Color(1.0,1.0,1.0), Color(1.0,1.0,1.0), Color(1.0,1.0,1.0), 10.0, 1.33, 0.9);
     Material glass(Color(0.001, 0.001, 0.001),
                    Color(0.0, 0.0, 0.0),
                    Color(0.999, 0.999, 0.999),
@@ -237,11 +272,14 @@ void scene_walls(int width, int height) {
 }
 
 void scene_spheres(int width, int height) {
+	std::cout << "Rendering spheres secne" << std::endl;
 	Raytracer raytracer;
 	LightList light_list;
 	Scene scene;
     Point3D origin(0,0,0);
 
+
+	Material transparent(Color(0.1, 0.1, 0.1), Color(1.0,1.0,0.0), Color(0.5,0.5,0.5), 0.0, 1.33, 0.9);
 
     Material diffuseR( Color(0.2,0.0,0.0), Color(0.9,0.0,0.0), Color(0.1,0.1,0.1), 1.0);
     Material diffuseG( Color(0.0,0.2,0.0), Color(0.0,0.9,0.0), Color(0.1,0.1,0.1), 1.0);
@@ -266,7 +304,7 @@ void scene_spheres(int width, int height) {
     scene.push_back(globeR);
     SceneNode* globeB = new SceneNode(new UnitSphere(), &mirror);
     scene.push_back(globeB);
-    SceneNode* globeY = new SceneNode(new UnitSphere(), &diffuseY);
+    SceneNode* globeY = new SceneNode(new UnitSphere(), &transparent);
     scene.push_back(globeY);
 
 	SceneNode* wall = new SceneNode(new UnitSphere(), &specularB);
@@ -313,6 +351,7 @@ void scene_spheres(int width, int height) {
 }
 
 void scene_basic(int width, int height){
+	std::cout << "Rendering basic secne" << std::endl;
 	Raytracer raytracer;
 	LightList light_list;
 	Scene scene;

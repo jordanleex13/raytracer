@@ -30,7 +30,6 @@
 //#define REFRACTION
 //#define REFLECTION
 
-
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 	for (size_t i = 0; i < scene.size(); ++i) {
 		SceneNode* node = scene[i];
@@ -129,43 +128,47 @@ Ray3D Raytracer::getReflectedRay(Ray3D& ray) {
     return reflectedRay;
 }
 
-bool Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay, float& transmittance) {
+bool Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay) {
 
-    Vector3D incident = -ray.dir; // -ray.dir so that the formula for R works
-    incident.normalize();
+    Vector3D I = -ray.dir; // -ray.dir so that the formula for R works
+    I.normalize();
     Vector3D N = ray.intersection.normal;
     N.normalize();
 
     // refraction coefficient of air and material
-    float n_air = 1.0;
-    float n_mat = ray.intersection.mat->n_refr;
+    double n_air = 1.0;
+    double n_mat = ray.intersection.mat->n_refr;
 
     if (n_mat==0) { return false;}
 
-    float cos_in = incident.dot(N);
-    float theta_in = acos(cos_in);
-    float n_in, n_out;
+    double cos_in = I.dot(N);
+    double theta_in = acos(cos_in);
+    double n_in, n_out;
     if (cos_in < 0.0){
     	// ray is shooting from the object to the air
+    	cos_in = -cos_in;
     	n_in = n_mat;
     	n_out = n_air;
     	theta_in = 2.0*M_PI - theta_in;
     } else {
+    	N = -N;
     	// ray is shooting from the air to the object
     	n_in = n_air;
     	n_out = n_mat;
     }
 
-    float ratio_n = n_in/n_out;
-    float cos_out = sqrt(1.0 - ratio_n*ratio_n*(1.0 - cos_in*cos_in));
-    Vector3D Rr = ratio_n*incident + (ratio_n*cos_in - cos_out)*N;
+    double ratio_n = n_in/n_out;
+    double k = 1.0 - ratio_n*ratio_n*(1.0 - cos_in*cos_in);
+    if (k < 0){ return false;} // total internal reflection, no refraction
+    double cos_out = sqrt(k);
+    Vector3D Rr = ratio_n*I + (ratio_n*cos_in - cos_out)*N;
 
     // http://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
-    float R0 = pow((n_in - n_out)/(n_in + n_out), 2.0);
-    // Reflectance.
-    float R = R0 + (1.0 - R0)*(1.0 - cos_in);
-    // Transmittance.
-    transmittance = 1.0 - R;
+    // double R0 = pow((n_in - n_out)/(n_in + n_out), 2.0);
+    // // Reflectance.
+    // double R = R0 + (1.0 - R0)*(1.0 - cos_in);
+    // // Transmittance.
+    // transmittance = 1.0 - R;
 	
 	// std::cout << "Ray: (" << ray.dir[0] << ", " << ray.dir[1] << ", " << ray.dir[2] << ")" << std::endl; 
 	// std::cout << "refraction: (" << Rr[0] << ", " << Rr[1] << ", " << Rr[2] << ")" << std::endl;
@@ -200,11 +203,11 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 
 #ifdef REFRACTION 
         Ray3D refractedRay;
-        float transmittance;
-        if (getRefractedRay(ray, refractedRay, transmittance)){
-            // TODO: add color by transmittance
+        double Ks = ray.intersection.mat->specular_exp;
+        double transmittance = ray.intersection.mat->transmittance;
+        if (getRefractedRay(ray, refractedRay)){
             Color refractedColor = shadeRay(refractedRay, scene, light_list, depth - 1);
-            col = col + transmittance*refractedColor;
+            col = col + transmittance * refractedColor;
         }
 #endif
 

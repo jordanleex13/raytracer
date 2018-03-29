@@ -38,11 +38,11 @@ void PointLight::shade(Ray3D& ray) {
 
     // Compute ambient, diffuse, specular components
     Material* mat = ray.intersection.mat;
-    Color amb = mat->ambient * col_ambient;
+    Color amb = mat->Ka * (mat->ambient * col_ambient);
     amb.clamp();
-    Color diff = mat->diffuse * (std::max(0.0, N.dot(L)) * col_diffuse);
+    Color diff = mat->Kd * (mat->diffuse * (std::max(0.0, N.dot(L)) * col_diffuse));
     diff.clamp();
-    Color spec = mat->specular * (std::max(0.0, std::pow(R.dot(V), mat->specular_exp)) * col_specular);
+    Color spec = mat->Ks * (mat->specular * (std::max(0.0, std::pow(R.dot(V), mat->specular_exp)) * col_specular));
     spec.clamp();
 
     // assign the colour to the ray
