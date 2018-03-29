@@ -47,7 +47,7 @@ void scene_refrac(int width, int height){
 	Scene scene;
     Point3D origin(0,0,0);
 	// Define materials for shading.
-	Material transparent(Color(0.1,0.1,0.1), Color(1.0,1.0,1.0), Color(0.0, 0.0, 0.0), 10.0, 1.33, 0.9);
+	Material transparent(Color(0.1,0.1,0.1), Color(1.0,1.0,1.0), Color(0.1,0.1,0.1), 1.0, 1.33, 0.9);
     Material diffuseR( Color(0.2,0.0,0.0), Color(0.9,0.0,0.0), Color(0.1,0.1,0.1), 1.0);
 
     Color darkgrey(0.5,0.5,0.5);
@@ -104,6 +104,27 @@ void scene_refrac(int width, int height){
 	back->scale(Point3D(0, 0, 0), factor2);
 	back->rotate('x', 90);
 	back->translate(Vector3D(-100, 0, 0));
+	// double factor2[3] = { 500.0, 500.0, 1.0 };
+	// floor->scale(Point3D(0, 0, 0), factor2);
+
+	// left->scale(Point3D(0, 0, 0), factor2);
+	// left->rotate('y', 90);
+	// left->translate(Vector3D(10, 0, 0));
+
+
+	// right->scale(Point3D(0, 0, 0), factor2);
+	// right->rotate('y', 90);
+	// right->translate(Vector3D(-10, 0, 0));
+
+
+	// top->scale(Point3D(0, 0, 0), factor2);
+	// top->rotate('x', 90);
+	// top->translate(Vector3D(0, 10, 0));
+
+
+	// back->scale(Point3D(0, 0, 0), factor2);
+	// back->rotate('x', 90);
+	// back->translate(Vector3D(0, -10, 0));
 
 
 	// Render the scene, feel free to make the image smaller for
@@ -179,11 +200,11 @@ void scene_walls(int width, int height) {
                     Color(0.508273, 0.508273, 0.508273),
                     100);
 
-	// Material glass(Color(1.0,1.0,1.0), Color(1.0,1.0,1.0), Color(1.0,1.0,1.0), 10.0, 1.33, 0.9);
-    Material glass(Color(0.001, 0.001, 0.001),
-                   Color(0.0, 0.0, 0.0),
-                   Color(0.999, 0.999, 0.999),
-                   10000);
+	Material glass(Color(0.1,0.1,0.1), Color(1.0,1.0,1.0), Color(0.1,0.1,0.1), 1.0, 1.33, 0.9);
+    // Material glass(Color(0.001, 0.001, 0.001),
+    //                Color(0.0, 0.0, 0.0),
+    //                Color(0.999, 0.999, 0.999),
+    //                10000);
 
     Material mirror(Color(0.001, 0.001, 0.001),
                     Color(0.0, 0.0, 0.0),

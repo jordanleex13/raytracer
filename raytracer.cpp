@@ -17,18 +17,18 @@
 #include <limits>
 
 // ANTIALIASING FEATURE: 
-// The higher NUM_ANTIALIASING_RAY gives better anti-aliasing performance, takes more time.
+// The higher NUM_ANTIALIASING_RAY gives better anti-aliasing performance, takes longer time.
 // Set NUM_ANTIALIASING_RAY to 1 to disable this feature.
 #define NUM_ANTIALIASING_RAY 3
 #define EPSILON 0.0001
 
 // Toggle options on/off
-//#define ANTI_ALIASING
-//#define SHADOWING
-//#define SOFT_SHADOWS
-//#define GLOSSY
-//#define REFRACTION
-//#define REFLECTION
+#define ANTI_ALIASING
+// #define SHADOWING
+// #define SOFT_SHADOWS
+// #define GLOSSY
+#define REFRACTION
+// #define REFLECTION
 
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 	for (size_t i = 0; i < scene.size(); ++i) {
@@ -161,7 +161,8 @@ bool Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay) {
     double k = 1.0 - ratio_n*ratio_n*(1.0 - cos_in*cos_in);
     if (k < 0){ return false;} // total internal reflection, no refraction
     double cos_out = sqrt(k);
-    Vector3D Rr = ratio_n*I + (ratio_n*cos_in - cos_out)*N;
+    Vector3D Rr = -ratio_n*I + -(ratio_n*cos_in - cos_out)*N;
+    Rr.normalize();
 
     // http://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
     // double R0 = pow((n_in - n_out)/(n_in + n_out), 2.0);
@@ -173,7 +174,7 @@ bool Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay) {
 	// std::cout << "Ray: (" << ray.dir[0] << ", " << ray.dir[1] << ", " << ray.dir[2] << ")" << std::endl; 
 	// std::cout << "refraction: (" << Rr[0] << ", " << Rr[1] << ", " << Rr[2] << ")" << std::endl;
     // initialize passed in ray
-    refractedRay.origin = ray.intersection.point;
+    refractedRay.origin = ray.intersection.point + EPSILON * Rr;
     refractedRay.dir = Rr;
     refractedRay.dir.normalize();
 
@@ -207,7 +208,7 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
         double transmittance = ray.intersection.mat->transmittance;
         if (getRefractedRay(ray, refractedRay)){
             Color refractedColor = shadeRay(refractedRay, scene, light_list, depth - 1);
-            col = col + transmittance * refractedColor;
+            col = (1.0 - transmittance)*col + transmittance * refractedColor;
         }
 #endif
 
