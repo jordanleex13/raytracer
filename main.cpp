@@ -80,7 +80,7 @@ void scene_refrac(int width, int height){
 	sphere2->translate(Vector3D(0, 0, 2));
 	sphere2->scale(Point3D(0, 0, 0), factor1);
 
-	sphere->translate(Vector3D(2, 2, 3));
+	sphere->translate(Vector3D(-5, 0, 2));
 	sphere->scale(Point3D(0, 0, 0), factor1);
 
 	double factor2[3] = { 500.0, 500.0, 1.0 };

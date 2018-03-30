@@ -80,7 +80,13 @@ void Raytracer::computeShading(Ray3D& ray, Scene& scene, LightList& light_list) 
 		// if the reverse ray hit any other object, it is a shadow
 		if(!reverseRay.intersection.none){
 			if(reverseRay.intersection.t_value <= distToLight) {
-        		ray.col = ray.intersection.mat->ambient;    // overwrites ray colour
+				double transmittance = reverseRay.intersection.mat->transmittance;
+				if(!transmittance){
+	        		ray.col = ray.intersection.mat->ambient;    // overwrites ray colour
+	        	} else {
+	        		ray.col = transmittance*ray.col + (1-transmittance)*ray.intersection.mat->ambient;
+	        	}
+	        	// ray.col = ray.intersection.mat->ambient;
         		ray.col.clamp();
         	}
 		}
