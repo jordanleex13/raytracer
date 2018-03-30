@@ -26,7 +26,7 @@
 /***** FEATURES *****/
 
 #define ANTI_ALIASING
-#define NUM_ANTIALIASING_RAY 5
+#define NUM_ANTIALIASING_RAY 3
 // DEPTH OF FIELD FEATURE:
 // The higher NUM_RAND_DOF_RAY gives smoother edge blur effect
 //#define DOF
@@ -34,11 +34,11 @@
 
 // Turn on ANTI_ALIASING will disable DOF feature automatically
 
-//#define SHADOWING
-//#define SOFT_SHADOWS
+#define SHADOWING
+#define SOFT_SHADOWS
 //#define GLOSSY
-//#define REFRACTION
-//#define REFLECTION
+#define REFRACTION
+#define REFLECTION
 
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 	for (size_t i = 0; i < scene.size(); ++i) {

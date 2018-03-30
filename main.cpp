@@ -44,7 +44,8 @@ int main(int argc, char* argv[])
 //	scene_spheres(width, height);
 //    scene_walls(width, height);
 //	scene_refrac(width, height);
-	scene_DOF(width, height);
+//	scene_DOF(width, height);
+    scene_wow(width, height);
 	std::cout << "Finished main" << std::endl;
 
 	return 0;
@@ -659,8 +660,105 @@ void scene_wow(int width, int height) {
     Scene scene;
 
     // Defines a point light source.
-    PointLight* pLight1 = new PointLight(Point3D(5,0,5), Color(0.9,0.9,0.9));
-    PointLight* pLight2 = new PointLight(Point3D(-5,0,5), Color(0.9,0.9,0.9));
-    light_list.push_back(pLight1);
-    light_list.push_back(pLight2);
+    PointLight* pLight = new PointLight(Point3D(25,-10,10), Color(0.9,0.9,0.9));
+    light_list.push_back(pLight);
+
+    Color dim(0.1,0.1,0.1); Color bright(1.0,1.0,1.0);
+    Material diffuseR( Color(0.2,0.0,0.0), Color(0.9,0.0,0.0), dim, 1.0);
+    Material diffuseG( Color(0.0,0.2,0.0), Color(0.0,0.9,0.0), dim, 1.0);
+    Material diffuseB( Color(0.0,0.0,0.2), Color(0.0,0.0,0.9), dim, 1.0);
+    Material diffuseY( Color(0.2,0.2,0.0), Color(0.9,0.9,0.0), dim, 1.0);
+
+    Material white(dim, bright, dim, 1.0);
+
+    /* Walls */
+    SceneNode* floor = new SceneNode(new UnitSquare(), &white);
+    SceneNode* ceiling = new SceneNode(new UnitSquare(), &diffuseY);
+    SceneNode* backWall = new SceneNode(new UnitSquare(), &diffuseR);
+    SceneNode* leftWall = new SceneNode(new UnitSquare(), &diffuseG);
+    SceneNode* rightWall = new SceneNode(new UnitSquare(), &diffuseB);
+    scene.push_back(floor);
+    scene.push_back(backWall);
+    scene.push_back(leftWall);
+    scene.push_back(rightWall);
+    scene.push_back(ceiling);
+
+    double wallScale[3] = { 100.0, 100.0, 100.0 };
+    floor->translate(Vector3D(30,0,0));     // floor @ z = 0
+    floor->scale(origin, wallScale);
+
+    ceiling->translate(Vector3D(0,0,20));   // ceiling @ z = 20
+    ceiling->scale(origin, wallScale);
+
+    backWall->translate(Vector3D(0,0,20));
+    backWall->rotate('y', 90);
+    backWall->scale(origin, wallScale);
+
+    leftWall->translate(Vector3D(0,-15,0));
+    leftWall->rotate('x', -90);
+    leftWall->scale(origin, wallScale);
+
+    rightWall->translate(Vector3D(0,15,0));
+    rightWall->rotate('x', 90);
+    rightWall->scale(origin, wallScale);
+
+
+    /* Actual objects */
+    Texture textureEarth = Texture("texture_earth.bmp");
+    Texture textureNumGrid = Texture("texture_numgrid.bmp");
+
+    Material earth(Color(0.1,0.1,0.1), Color(0.9, 0.9, 0.9), Color(0.1, 0.1, 0.1), 1.0);
+    earth.texture = &textureEarth;
+    Material glass(Color(0.1,0.1,0.1), Color(1.0,1.0,1.0), Color(0.1,0.1,0.1), 1.0, 1.33, 0.9);
+    Material mirror(Color(0.001, 0.001, 0.001), Color(0.0, 0.0, 0.0), Color(0.999, 0.999, 0.999), 10000.0);
+
+
+//    Material numGrid(Color(0.1,0.1,0.1), Color(0.9, 0.9, 0.9), Color(0.1, 0.1, 0.1), 1);
+//    numGrid.texture = &textureNumGrid;
+
+    double sphereScale[3] = { 3.0, 3.0, 3.0 };
+
+    SceneNode* globe = new SceneNode(new UnitSphere(), &earth);
+    SceneNode* mirrorSphere1 = new SceneNode(new UnitSphere(), &mirror);
+    SceneNode* mirrorSphere2 = new SceneNode(new UnitSphere(), &mirror);
+    SceneNode* glassSphere = new SceneNode(new UnitSphere(), &glass);
+
+    scene.push_back(globe);
+    scene.push_back(mirrorSphere1);
+    scene.push_back(mirrorSphere2);
+    scene.push_back(glassSphere);
+
+    globe->scale(origin, sphereScale);
+//    globe->rotate('z', 180);
+    globe->translate(Vector3D(2.5, 2, 1.5));
+
+    mirrorSphere1->scale(origin, sphereScale);
+    mirrorSphere1->translate(Vector3D(4, -1.75, 1));
+
+    mirrorSphere2->scale(origin, sphereScale);
+    mirrorSphere2->translate(Vector3D(1, -1, 3.5));
+
+    double smallScale[3] = { 1.5, 1.5, 1.5 };
+    glassSphere->scale(origin, smallScale);
+    glassSphere->translate(Vector3D(12.0, 3.0, 2));
+
+
+
+
+    Point3D cameraPositions[3] = {Point3D(35,0,10), Point3D(20, 4, 10), Point3D(75,0,10)};
+    for (int i = 0; i < NELEMS(cameraPositions); i++) {
+        Point3D cameraPos = cameraPositions[i];
+        // look slightly above floor
+        Camera camera1(cameraPos, Point3D(0,0,8) - cameraPos, Vector3D(0, 0, 1), 60.0);
+        Image image1(width, height);
+        raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
+
+        image1.flushPixelBuffer("view_wow_" + std::to_string(i) + ".bmp"); //save rendered image to file
+//        image1.flushPixelBuffer("view_no_ss_" + std::to_string(i) + ".bmp"); //save rendered image to file
+        std::cout << "Finished " << i << std::endl;
+    }
+
+    // Free memory
+    for (size_t i = 0; i < scene.size(); ++i) { delete scene[i]; }
+    for (size_t i = 0; i < light_list.size(); ++i) { delete light_list[i]; }
 }
