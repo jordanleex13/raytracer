@@ -15,6 +15,7 @@ void scene_basic(int width, int height);
 void scene_cylinder(int width, int height);
 void scene_walls(int width, int height);
 void scene_spheres(int, int);
+void scene_anti_aliasing(int width, int height);
 void scene_refrac(int width, int height);
 void scene_texture_map(int width, int height);
 void scene_soft_shadows(int width, int height);
@@ -39,18 +40,80 @@ int main(int argc, char* argv[])
 	}
     std::cout << "Width: " << width << " height: " << height << std::endl;
 	
-   // scene_soft_shadows(width, height);
-   // scene_texture_map(width, height);
+	// scene_soft_shadows(width, height);
+	// scene_texture_map(width, height);
 	// scene_basic(width, height);	
 	// scene_cylinder(width, height);
-	// scene_spheres(width, height);
-   	scene_walls(width, height);
+	// scene_anti_aliasing(width, height);
+	scene_spheres(width, height);
+   	// scene_walls(width, height);
 	// scene_refrac(width, height);
 	// scene_DOF(width, height);
-	
+
 	std::cout << "Finished main" << std::endl;
 
 	return 0;
+}
+
+void scene_anti_aliasing(int width, int height){
+	std::cout << "Rendering refraction secne" << std::endl;
+	Raytracer raytracer;
+	LightList light_list;
+	Scene scene;
+    Point3D origin(0,0,0);
+	// Define materials for shading.
+	Material transparent(Color(0.2,0.2,0.2), Color(1.0,1.0,1.0), Color(0.5,0.5,0.5), 1.0, 1.33, 0.9);
+    Material diffuseR( Color(0.2,0.0,0.0), Color(0.9,0.0,0.0), Color(0.1,0.1,0.1), 1.0);
+    Material blue(Color(0.0, 0.0, 0.1), Color(0.4, 0.4, 0.4), Color(0.05, 0.05, 0.6), 1);
+
+    Color darkgrey(0.5,0.5,0.5);
+	Material slate(darkgrey, darkgrey, Color(0.1,0.1,0.1), 1.0);
+
+	// Defines a point light source.
+	PointLight* pLight = new PointLight(Point3D(20,20,20), Color(0.9,0.9,0.9));
+	light_list.push_back(pLight);
+
+	
+	// Add a unit square into the scene with material mat.
+	SceneNode* sphere = new SceneNode(new UnitSphere(), &blue);
+	scene.push_back(sphere);	
+	SceneNode* sphere2 = new SceneNode(new UnitSphere(), &diffuseR);
+	scene.push_back(sphere2);
+	SceneNode* floor = new SceneNode(new UnitSquare(), &slate);
+	scene.push_back(floor);
+
+
+	// Apply some transformations to the sphere and unit square.
+	double factor1[3] = { 2.0, 2.0, 2.0 };
+	sphere2->translate(Vector3D(-3, 0, 2));
+	sphere2->scale(Point3D(0, 0, 0), factor1);
+
+	sphere->translate(Vector3D(2, 0, 2));
+	sphere->scale(Point3D(0, 0, 0), factor1);
+
+	double factor2[3] = { 500.0, 500.0, 1.0 };
+	floor->scale(Point3D(0, 0, 0), factor2);
+	
+    Point3D cameraPositions[4] = {Point3D(0, -10, 5), Point3D(0, 10, 7), Point3D(10, 0, 10), Point3D(-10, 0, 3)};
+    for (int i = 0; i < 4; i++) {
+        Point3D cameraPos = cameraPositions[i];
+        Camera camera1(cameraPos, origin - cameraPos, Vector3D(0, 0, 1), 60.0);
+        Image image1(width, height);
+        raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
+
+        image1.flushPixelBuffer("anti_aliasing" + std::to_string(i) + ".bmp"); //save rendered image to file
+        std::cout << "Finished " << i << std::endl;
+    }
+
+	// Free memory
+	for (size_t i = 0; i < scene.size(); ++i) {
+		delete scene[i];
+	}
+
+	for (size_t i = 0; i < light_list.size(); ++i) {
+		delete light_list[i];
+	}
+
 }
 
 void scene_DOF(int width, int height){

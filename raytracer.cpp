@@ -14,7 +14,7 @@
 #define EPSILON 0.0001
 
 
-#define MULTITHREADING // Toggle option for multithreading 
+// #define MULTITHREADING // Toggle option for multithreading 
 
 #ifdef MULTITHREADING
 	#include <omp.h>
@@ -26,19 +26,19 @@
 /***** FEATURES *****/
 
 #define ANTI_ALIASING
-#define NUM_ANTIALIASING_RAY 5
+#define NUM_ANTIALIASING_RAY 3
 // DEPTH OF FIELD FEATURE:
 // The higher NUM_RAND_DOF_RAY gives smoother edge blur effect
 //#define DOF
 //#define NUM_RAND_DOF_RAY 6
 
 // Turn on ANTI_ALIASING will disable DOF feature automatically
-#define ANTI_ALIASING
-#define SHADOWING
-#define SOFT_SHADOWS
+// #define ANTI_ALIASING
+// #define SHADOWING
+// #define SOFT_SHADOWS
 // #define GLOSSY
-#define REFRACTION
-#define REFLECTION
+// #define REFRACTION
+// #define REFLECTION
 // #define DOF 		//depth of field
 
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
