@@ -37,6 +37,12 @@ bool UnitCylinder::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Ma
 		if (t2 >= 0) { time.push_back(t2); }
 	}
 
+	// std::cout << "intersection time: ";
+	// for(auto it = time.begin(); it != time.end(); ++it) {
+	// 	std::cout <<(*it) << " ";
+	// }
+	// std::cout << std::endl;
+
 	// intersecting with top and bottom planes
 	Vector3D N = Vector3D(0.0, 0.0, 1.0);
 	Point3D p0 = Point3D(0.0, 0.0, 0.5);
@@ -59,6 +65,7 @@ bool UnitCylinder::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Ma
 	    if (t == -1) { t = (*it); }
 	    else { t = std::min(t, (*it)); }
 	}
+	// std::cout << "cylinder: " << t << std::endl;
 	if (t == -1) {return false;}
 	// use line equation to get intersection point
 	Point3D intersection = eye + t * eyeToPlane;

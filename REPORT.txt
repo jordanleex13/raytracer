@@ -1,0 +1,31 @@
+File structure:
+- ./src: all the source code 
+- ./output: images that shows each feature
+- ./REPORT.txt: an explanation of this project
+- ./CHECKLIST.txt: for grading purpose only
+
+Basic features:
+- Phong illumination 
+- Intersection with sphere 
+- Intersection with plane 
+- Ray casting
+
+Advanced features:
+- Recursive ray tracing
+- Anti-aliasing
+- Depth of field 
+- Extended light source, soft shadow
+- Texure mapping
+- Reflection
+- Refraction
+- Fresnel law
+- Glossy effect
+
+External reference:
+- A paper explaining how refraction works in graphics:
+  http://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
+
+Role of each member:
+Ginny is responsible for implementing anti-aliasing, depth of field, refraction and fresnel law.
+Gordon is responsible for setting up basic ray tracing, implementing recursive ray tracing, extended light source, texture mapping, reflection and glossy effect.
+Both two members worked together in setting up scenes and testing features.
