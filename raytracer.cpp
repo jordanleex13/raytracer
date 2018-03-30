@@ -14,7 +14,7 @@
 #define EPSILON 0.0001
 
 
-// #define MULTITHREADING // Toggle option for multithreading 
+#define MULTITHREADING // Toggle option for multithreading 
 
 #ifdef MULTITHREADING
 	#include <omp.h>
@@ -33,12 +33,13 @@
 //#define NUM_RAND_DOF_RAY 6
 
 // Turn on ANTI_ALIASING will disable DOF feature automatically
-
-//#define SHADOWING
-//#define SOFT_SHADOWS
-//#define GLOSSY
-//#define REFRACTION
-//#define REFLECTION
+#define ANTI_ALIASING
+#define SHADOWING
+#define SOFT_SHADOWS
+// #define GLOSSY
+#define REFRACTION
+#define REFLECTION
+// #define DOF 		//depth of field
 
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 	for (size_t i = 0; i < scene.size(); ++i) {
@@ -96,7 +97,6 @@ void Raytracer::computeShading(Ray3D& ray, Scene& scene, LightList& light_list) 
 	        	} else {
 	        		ray.col = transmittance*ray.col + (1-transmittance)*ray.intersection.mat->ambient;
 	        	}
-	        	// ray.col = ray.intersection.mat->ambient;
         		ray.col.clamp();
         	}
 		}
@@ -144,7 +144,7 @@ Ray3D Raytracer::getReflectedRay(Ray3D& ray) {
     return reflectedRay;
 }
 
-bool Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay) {
+bool Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay, double& T) {
 
     Vector3D I = -ray.dir; // -ray.dir so that the formula for R works
     I.normalize();
@@ -181,15 +181,13 @@ bool Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay) {
     Rr.normalize();
 
     // http://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
-    // double R0 = pow((n_in - n_out)/(n_in + n_out), 2.0);
-    // // Reflectance.
-    // double R = R0 + (1.0 - R0)*(1.0 - cos_in);
-    // // Transmittance.
-    // transmittance = 1.0 - R;
-	
-	// std::cout << "Ray: (" << ray.dir[0] << ", " << ray.dir[1] << ", " << ray.dir[2] << ")" << std::endl; 
-	// std::cout << "refraction: (" << Rr[0] << ", " << Rr[1] << ", " << Rr[2] << ")" << std::endl;
-    // initialize passed in ray
+    double R0 = pow((n_in - n_out)/(n_in + n_out), 2.0);
+    // Reflectance.
+    double R = R0 + (1.0 - R0)*(1.0 - cos_in);
+    // Transmittance.
+    T = 1.0 - R;
+
+	// initialize passed in ray
     refractedRay.origin = ray.intersection.point + EPSILON * Rr;
     refractedRay.dir = Rr;
     refractedRay.dir.normalize();
@@ -214,17 +212,27 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
         Ray3D reflectedRay = getReflectedRay(ray);
 
         Color reflectedColor = shadeRay(reflectedRay, scene, light_list, depth - 1);
-        col = col + (spec * reflectedColor); // no += operator for color
-
+#ifndef REFRACTION
+        col = col + (spec * reflectedColor);
+#endif
 #endif
 
 #ifdef REFRACTION 
         Ray3D refractedRay;
-        double Ks = ray.intersection.mat->specular_exp;
+        double T;
+        double Ks = ray.intersection.mat->Ks;
         double transmittance = ray.intersection.mat->transmittance;
-        if (getRefractedRay(ray, refractedRay)){
+        if (getRefractedRay(ray, refractedRay, T)){
             Color refractedColor = shadeRay(refractedRay, scene, light_list, depth - 1);
+#ifndef REFLECTION
             col = (1.0 - transmittance)*col + transmittance * refractedColor;
+#else
+    		col = (1.0 - Ks)*col + Ks*((1.0 - T)*(spec * reflectedColor) + T * refractedColor);  
+#endif     
+        } else{
+#ifdef REFLECTION
+        	col = col = col + (spec * reflectedColor);
+#endif
         }
 #endif
 

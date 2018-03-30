@@ -12,6 +12,7 @@
 
 
 void scene_basic(int width, int height);
+void scene_cylinder(int width, int height);
 void scene_walls(int width, int height);
 void scene_spheres(int, int);
 void scene_refrac(int width, int height);
@@ -37,14 +38,16 @@ int main(int argc, char* argv[])
 		height = atoi(argv[2]);
 	}
     std::cout << "Width: " << width << " height: " << height << std::endl;
-
-//    scene_soft_shadows(width, height);
-//    scene_texture_map(width, height);
-//	scene_basic(width, height);
-//	scene_spheres(width, height);
-//    scene_walls(width, height);
-//	scene_refrac(width, height);
-	scene_DOF(width, height);
+	
+   // scene_soft_shadows(width, height);
+   // scene_texture_map(width, height);
+	// scene_basic(width, height);	
+	// scene_cylinder(width, height);
+	// scene_spheres(width, height);
+   	scene_walls(width, height);
+	// scene_refrac(width, height);
+	// scene_DOF(width, height);
+	
 	std::cout << "Finished main" << std::endl;
 
 	return 0;
@@ -142,7 +145,7 @@ void scene_refrac(int width, int height){
 	Scene scene;
     Point3D origin(0,0,0);
 	// Define materials for shading.
-	Material transparent(Color(0.1,0.1,0.1), Color(1.0,1.0,1.0), Color(0.1,0.1,0.1), 1.0, 1.33, 0.9);
+	Material transparent(Color(0.2,0.2,0.2), Color(1.0,1.0,1.0), Color(0.5,0.5,0.5), 1.0, 1.33, 0.9);
     Material diffuseR( Color(0.2,0.0,0.0), Color(0.9,0.0,0.0), Color(0.1,0.1,0.1), 1.0);
 
     Color darkgrey(0.5,0.5,0.5);
@@ -172,10 +175,10 @@ void scene_refrac(int width, int height){
 
 	// Apply some transformations to the sphere and unit square.
 	double factor1[3] = { 2.0, 2.0, 2.0 };
-	sphere2->translate(Vector3D(0, 0, 2));
+	sphere2->translate(Vector3D(-3, 0, 2));
 	sphere2->scale(Point3D(0, 0, 0), factor1);
 
-	sphere->translate(Vector3D(-5, 0, 2));
+	sphere->translate(Vector3D(2, 0, 2));
 	sphere->scale(Point3D(0, 0, 0), factor1);
 
 	double factor2[3] = { 500.0, 500.0, 1.0 };
@@ -366,7 +369,7 @@ void scene_walls(int width, int height) {
                     Color(0.508273, 0.508273, 0.508273),
                     100);
 
-	Material glass(Color(0.1,0.1,0.1), Color(1.0,1.0,1.0), Color(0.1,0.1,0.1), 1.0, 1.33, 0.9);
+	Material glass(Color(0.2,0.2,0.2), Color(1.0,1.0,1.0), Color(0.5,0.5,0.5), 1.0, 1.33, 0.9);
     // Material glass(Color(0.001, 0.001, 0.001),
     //                Color(0.0, 0.0, 0.0),
     //                Color(0.999, 0.999, 0.999),
@@ -537,6 +540,7 @@ void scene_spheres(int width, int height) {
 	}
 }
 
+
 void scene_soft_shadows(int width, int height) {
     std::cout << "Rendering soft shadows" << std::endl;
     Raytracer raytracer;
@@ -592,6 +596,66 @@ void scene_soft_shadows(int width, int height) {
     }
 
 }
+
+void scene_cylinder(int width, int height){
+
+	std::cout << "Rendering cylinder secne" << std::endl;
+	Raytracer raytracer;
+	LightList light_list;
+	Scene scene;
+	// Define materials for shading.
+	Material gold(Color(0.3, 0.3, 0.3), Color(0.75164,0.60648,0.22648),
+		Color(0.628281, 0.555802, 0.366065),
+		51.2);
+	Material jade(Color(0, 0, 0), Color(0.54,0.89,0.63),
+		Color(0.316228,0.316228,0.316228),
+		12.8);
+
+	// Defines a point light source.
+	PointLight* pLight = new PointLight(Point3D(0,0,5), Color(0.9,0.9,0.9));
+	light_list.push_back(pLight);
+	
+	// Add a unit square into the scene with material mat.
+	SceneNode* cylinder = new SceneNode(new UnitCylinder(), &gold);
+	scene.push_back(cylinder);
+	SceneNode* plane = new SceneNode(new UnitSquare(), &jade);
+	scene.push_back(plane);
+
+	// Apply some transformations to the cylinder and unit square.
+	double factor1[3] = { 1.0, 1.0, 1.0 };
+	cylinder->translate(Vector3D(0, 0, -5));
+	cylinder->rotate('x', 90);
+	cylinder->scale(origin, factor1);
+
+	double factor2[3] = { 12.0, 12.0, 12.0 };
+	plane->translate(Vector3D(0, 0, -15));
+	plane->rotate('z', 45);
+	plane->scale(origin, factor2);
+
+	// Render the scene, feel free to make the image smaller for testing purposes.
+	Camera camera1(Point3D(0, 0, 1), Vector3D(0, 0, -1), Vector3D(0, 1, 0), 60.0);
+	Image image1(width, height);
+	raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
+	image1.flushPixelBuffer("view1.bmp"); //save rendered image to file
+
+	// Render it from a different point of view.
+	Camera camera2(Point3D(4, 2, 1), Vector3D(-4, -2, -6), Vector3D(0, 1, 0), 60.0);
+	Image image2(width, height);
+	raytracer.render(camera2, scene, light_list, image2);
+	image2.flushPixelBuffer("view2.bmp");
+
+	// Free memory
+	for (size_t i = 0; i < scene.size(); ++i) {
+		delete scene[i];
+	}
+
+	for (size_t i = 0; i < light_list.size(); ++i) {
+		delete light_list[i];
+	}
+
+}
+
+
 void scene_basic(int width, int height){
 	std::cout << "Rendering basic secne" << std::endl;
 	Raytracer raytracer;
