@@ -16,7 +16,9 @@ void scene_walls(int width, int height);
 void scene_spheres(int, int);
 void scene_refrac(int width, int height);
 void scene_texture_map(int width, int height);
+void scene_soft_shadows(int width, int height);
 void scene_DOF(int width, int height);
+void scene_wow(int width, int height);
 
 static Point3D origin(0,0,0);
 
@@ -36,12 +38,13 @@ int main(int argc, char* argv[])
 	}
     std::cout << "Width: " << width << " height: " << height << std::endl;
 
-    scene_texture_map(width, height);
+//    scene_soft_shadows(width, height);
+//    scene_texture_map(width, height);
 //	scene_basic(width, height);
 //	scene_spheres(width, height);
 //    scene_walls(width, height);
 //	scene_refrac(width, height);
-//	scene_DOF(width, height);
+	scene_DOF(width, height);
 	std::cout << "Finished main" << std::endl;
 
 	return 0;
@@ -298,8 +301,7 @@ void scene_texture_map(int width, int height) {
         Camera camera1(cameraPos, origin - cameraPos, Vector3D(0, 0, 1), 60.0);
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
-
-        image1.flushPixelBuffer("tm" + std::to_string(i) + ".bmp"); //save rendered image to file
+        image1.flushPixelBuffer("view_tm_" + std::to_string(i) + ".bmp"); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 
@@ -535,6 +537,61 @@ void scene_spheres(int width, int height) {
 	}
 }
 
+void scene_soft_shadows(int width, int height) {
+    std::cout << "Rendering soft shadows" << std::endl;
+    Raytracer raytracer;
+    LightList light_list;
+    Scene scene;
+
+    Color darkgrey(0.5,0.5,0.5);
+    Color smallSpec(0.1,0.1,0.1);
+    Material diffuseR( Color(0.2,0.0,0.0), Color(0.9,0.0,0.0), smallSpec, 1.0);
+    Material diffuseG( Color(0.0,0.2,0.0), Color(0.0,0.9,0.0), smallSpec, 1.0);
+    Material slate(darkgrey, darkgrey, Color(0.1,0.1,0.1), 1.0);
+
+    // Defines a point light source.
+    PointLight* pLight = new PointLight(Point3D(0,0,20), Color(0.9,0.9,0.9));
+    light_list.push_back(pLight);
+
+    SceneNode* floor = new SceneNode(new UnitSquare(), &slate);
+    SceneNode* redBall = new SceneNode(new UnitSphere(), &diffuseR);
+    SceneNode* greenBall = new SceneNode(new UnitSphere(), &diffuseG);
+
+    scene.push_back(floor);
+    scene.push_back(redBall);
+    scene.push_back(greenBall);
+
+    double factor1[3] = { 500.0, 500.0, 1.0 };
+    floor->scale(origin, factor1);
+
+    double factor2[3] = {3.0,3.0,3.0};
+    redBall->scale(origin, factor2);
+    redBall->translate(Vector3D(-3, 0, 3));
+    greenBall->scale(origin, factor2);
+    greenBall->translate(Vector3D(3, 0, 3));
+
+    Point3D cameraPositions[2] = { Point3D(20,20,20), Point3D(0,40,50)};
+    for (int i = 0; i < NELEMS(cameraPositions); i++) {
+        Point3D cameraPos = cameraPositions[i];
+        Camera camera1(cameraPos, origin - cameraPos, Vector3D(0, 0, 1), 60.0);
+        Image image1(width, height);
+        raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
+
+        image1.flushPixelBuffer("view_ss_" + std::to_string(i) + ".bmp"); //save rendered image to file
+//        image1.flushPixelBuffer("view_no_ss_" + std::to_string(i) + ".bmp"); //save rendered image to file
+        std::cout << "Finished " << i << std::endl;
+    }
+
+    // Free memory
+    for (size_t i = 0; i < scene.size(); ++i) {
+        delete scene[i];
+    }
+
+    for (size_t i = 0; i < light_list.size(); ++i) {
+        delete light_list[i];
+    }
+
+}
 void scene_basic(int width, int height){
 	std::cout << "Rendering basic secne" << std::endl;
 	Raytracer raytracer;
@@ -591,4 +648,19 @@ void scene_basic(int width, int height){
 		delete light_list[i];
 	}
 
+}
+
+
+
+void scene_wow(int width, int height) {
+    std::cout << "Rendering wow scene" << std::endl;
+    Raytracer raytracer;
+    LightList light_list;
+    Scene scene;
+
+    // Defines a point light source.
+    PointLight* pLight1 = new PointLight(Point3D(5,0,5), Color(0.9,0.9,0.9));
+    PointLight* pLight2 = new PointLight(Point3D(-5,0,5), Color(0.9,0.9,0.9));
+    light_list.push_back(pLight1);
+    light_list.push_back(pLight2);
 }
