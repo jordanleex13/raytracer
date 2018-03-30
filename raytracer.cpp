@@ -20,15 +20,17 @@
 // The higher NUM_ANTIALIASING_RAY gives better anti-aliasing performance, takes longer time.
 // Set NUM_ANTIALIASING_RAY to 1 to disable this feature.
 #define NUM_ANTIALIASING_RAY 3
+#define NUM_RAND_DOF_RAY 6
 #define EPSILON 0.0001
 
 // Toggle options on/off
-#define ANTI_ALIASING
+// #define ANTI_ALIASING
 #define SHADOWING
 #define SOFT_SHADOWS
 #define GLOSSY
 #define REFRACTION
 #define REFLECTION
+#define DOF 		//depth of field
 
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 	for (size_t i = 0; i < scene.size(); ++i) {
@@ -240,6 +242,8 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			// image plane is at z = -1.
 			Point3D imagePlane;
 			imagePlane[2] = -1;
+			Point3D rand_on_lens;
+			rand_on_lens[2] = 0;
 			Color col;
 #ifndef ANTI_ALIASING
             imagePlane[0] = (-double(image.width)/2 + 0.5 + j)/factor;
@@ -247,13 +251,45 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
             Ray3D ray;
             ray.origin = origin;
             ray.dir = imagePlane - ray.origin;
-
+#ifndef DOF
             // convert ray to world space
             ray.origin = viewToWorld * ray.origin;
             ray.dir = viewToWorld * ray.dir;
 
             int depth = 5;  // number of bounces before ray dies
     		col = shadeRay(ray, scene, light_list, depth);
+#endif
+
+#ifdef DOF 
+			Point3D focal = ray.origin + camera.focalLength*ray.dir;
+			// Point3D nearest_focal = ray.origin + (camera.focalLength - camera.focalRange)*ray.dir;
+			// Point3D farthest_focal = ray.origin + (camera.focalLength + camera.focalRange)*ray.dir;
+			// if(point_in_range()){
+			// 	#undef NUM_RAND_DOF_RAY 
+			// 	#define NUM_RAND_DOF_RAY 1
+			// }
+			for(int m = 0; m < NUM_RAND_DOF_RAY; m++){
+				for(int n = 0; n < NUM_RAND_DOF_RAY; n++){
+					rand_on_lens[0] = origin[0] + camera.aperture/NUM_RAND_DOF_RAY*(m+0.5);
+					rand_on_lens[1] = origin[1] + camera.aperture/NUM_RAND_DOF_RAY*(n+0.5);
+
+					// create ray in view space (camera space)
+					Ray3D ray;
+		            ray.origin = rand_on_lens;
+		            ray.dir = focal - ray.origin;
+
+		            // convert ray to world space
+		            ray.origin = viewToWorld * ray.origin;
+		            ray.dir = viewToWorld * ray.dir;
+
+		            int depth = 5;  // number of bounces before ray dies
+					Color subcol = shadeRay(ray, scene, light_list, depth);
+					col[0] += subcol[0]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY;
+					col[1] += subcol[1]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY;
+					col[2] += subcol[2]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY;
+				}
+			}
+#endif
 #endif
 
 #ifdef ANTI_ALIASING

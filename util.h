@@ -6,6 +6,9 @@
 	modify this file as you see fit.
 
 ***********************************************************/
+#ifndef _UTIL_H_
+#define _UTIL_H_
+
 #pragma once
 
 #include <iostream>
@@ -191,6 +194,13 @@ struct Camera {
 	:
 	eye(eye), view(view), up(up), fov(fov)
 	{}
+
+	Camera(Point3D eye, Vector3D view, Vector3D up, double fov, 
+		double aperture, double focalLength, double focalRange) 
+	:
+	eye(eye), view(view), up(up), fov(fov), aperture(aperture), 
+	focalLength(focalLength), focalRange(focalRange)
+	{}
 	
 	// Constructs a view to world transformation matrix based on the
 	// camera parameters.
@@ -222,6 +232,9 @@ struct Camera {
 	Vector3D view;
 	Vector3D up;
 	double fov;
+	double aperture;
+	double focalLength;
+	double focalRange;
 };
 
 struct Image {
@@ -275,5 +288,9 @@ private:
 };
 
 
+// bool point_in_range(Point3D p, Point3D p1, Point3D p2){
+// 	return (p[0]>=p1[0] && p[1]>=p1[1] && p[2]>=p1[2]
+// 		&& p[0]<=p2[0] && p[1]<=p2[1] && p[2]<=p2[2]);
+// }
 
-
+#endif
