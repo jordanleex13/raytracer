@@ -8,8 +8,6 @@
 #include <iostream>
 #include "raytracer.h"
 
-// #include <omp.h>
-
 void scene_basic(int width, int height);
 void scene_walls(int width, int height);
 void scene_spheres(int, int);
@@ -108,7 +106,7 @@ void scene_DOF(int width, int height){
 	// testing purposes.
 
     Point3D cameraPositions[1] = {Point3D(0, -10, 5)};
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < sizeof(cameraPositions)/sizeof(Point3D); i++) {
         Point3D cameraPos = cameraPositions[i];
         Camera camera1(cameraPos, origin - cameraPos, Vector3D(0, 0, 1), fov, aperture, focalLength, focalRange);
         Image image1(width, height);

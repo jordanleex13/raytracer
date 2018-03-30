@@ -16,14 +16,26 @@
 #include <random>
 #include <limits>
 
+// #define MULTITHREADING // Toggle option for multithreading 
+
+#ifdef MULTITHREADING
+	#include <omp.h>
+	#define parallelism_enabled 1
+#else
+	#define parallelism_enabled 0
+#endif
+
 // ANTIALIASING FEATURE: 
 // The higher NUM_ANTIALIASING_RAY gives better anti-aliasing performance, takes longer time.
 // Set NUM_ANTIALIASING_RAY to 1 to disable this feature.
 #define NUM_ANTIALIASING_RAY 3
+// DEPTH OF FIELD FEATURE:
+// The higher NUM_RAND_DOF_RAY gives smoother edge blur effect
 #define NUM_RAND_DOF_RAY 6
 #define EPSILON 0.0001
 
 // Toggle options on/off
+// Turn on ANTI_ALIASING will disable DOF feature automatically
 // #define ANTI_ALIASING
 #define SHADOWING
 #define SOFT_SHADOWS
@@ -235,6 +247,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 
 	Point3D origin(0, 0, 0);
 
+#pragma omp parallel for if(parallelism_enabled)
 	// Construct a ray for each pixel.
 	for (int i = 0; i < image.height; i++) {
 		for (int j = 0; j < image.width; j++) {								
@@ -262,12 +275,6 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 
 #ifdef DOF 
 			Point3D focal = ray.origin + camera.focalLength*ray.dir;
-			// Point3D nearest_focal = ray.origin + (camera.focalLength - camera.focalRange)*ray.dir;
-			// Point3D farthest_focal = ray.origin + (camera.focalLength + camera.focalRange)*ray.dir;
-			// if(point_in_range()){
-			// 	#undef NUM_RAND_DOF_RAY 
-			// 	#define NUM_RAND_DOF_RAY 1
-			// }
 			for(int m = 0; m < NUM_RAND_DOF_RAY; m++){
 				for(int n = 0; n < NUM_RAND_DOF_RAY; n++){
 					rand_on_lens[0] = origin[0] + camera.aperture/NUM_RAND_DOF_RAY*(m+0.5);
