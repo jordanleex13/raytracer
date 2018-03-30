@@ -146,24 +146,32 @@ private:
 };
 struct Material {
 	Material(Color ambient, Color diffuse, Color specular, double exp) :
-		ambient(ambient), diffuse(diffuse), specular(specular), 
-		specular_exp(exp), n_refr(0.0), texture(nullptr) {}
+		ambient(ambient), diffuse(diffuse), specular(specular),
+		specular_exp(exp), Ka(1.0), Kd(1.0), Ks(1.0),
+		texture(nullptr),
+		n_refr(0.0), transmittance(0.0) {}
 
-	Material(Color ambient, Color diffuse, Color specular, double exp, float n) :
+	Material(Color ambient, Color diffuse, Color specular, double exp, double n, double t) :
 		ambient(ambient), diffuse(diffuse), specular(specular), 
-		specular_exp(exp), n_refr(n) {}
+		specular_exp(exp),  Ka(0.1), Kd(0.05), Ks(0.2),
+		n_refr(n), transmittance(t) {}
 	
 	// Ambient components for Phong shading.
 	Color ambient;
 	Color diffuse;
 	Color specular;
+	double Ka; 		// ambient coefficient
+	double Kd; 		// diffusion coefficient 
+	double Ks; 		// specular reflection coefficient 
 	double specular_exp;
 
-	// Refraction coefficient 
-	float n_refr;
-
+	// for texture mapping
 	Texture* texture;
 	Color getTextureColor(const Ray3D& ray);
+
+	// for refraction
+	double n_refr;
+	double transmittance;
 };
 
 struct Intersection {
@@ -211,6 +219,13 @@ struct Camera {
 	:
 	eye(eye), view(view), up(up), fov(fov)
 	{}
+
+	Camera(Point3D eye, Vector3D view, Vector3D up, double fov, 
+		double aperture, double focalLength, double focalRange) 
+	:
+	eye(eye), view(view), up(up), fov(fov), aperture(aperture), 
+	focalLength(focalLength), focalRange(focalRange)
+	{}
 	
 	// Constructs a view to world transformation matrix based on the
 	// camera parameters.
@@ -242,6 +257,9 @@ struct Camera {
 	Vector3D view;
 	Vector3D up;
 	double fov;
+	double aperture;
+	double focalLength;
+	double focalRange;
 };
 
 struct Image {
@@ -293,7 +311,3 @@ private:
 	unsigned char* gbuffer; // green channel
 	unsigned char* bbuffer; // blue channel
 };
-
-
-
-

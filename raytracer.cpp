@@ -11,17 +11,34 @@
 
 #include "raytracer.h"
 
-#define NUM_ANTIALIASING_RAY 3
 #define EPSILON 0.0001
 
-// Toggle options on/off
-//#define ANTI_ALIASING
+
+// #define MULTITHREADING // Toggle option for multithreading 
+
+#ifdef MULTITHREADING
+	#include <omp.h>
+	#define parallelism_enabled 1
+#else
+	#define parallelism_enabled 0
+#endif
+
+/***** FEATURES *****/
+
+#define ANTI_ALIASING
+#define NUM_ANTIALIASING_RAY 5
+// DEPTH OF FIELD FEATURE:
+// The higher NUM_RAND_DOF_RAY gives smoother edge blur effect
+//#define DOF
+//#define NUM_RAND_DOF_RAY 6
+
+// Turn on ANTI_ALIASING will disable DOF feature automatically
+
 //#define SHADOWING
 //#define SOFT_SHADOWS
 //#define GLOSSY
 //#define REFRACTION
 //#define REFLECTION
-
 
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 	for (size_t i = 0; i < scene.size(); ++i) {
@@ -73,7 +90,13 @@ void Raytracer::computeShading(Ray3D& ray, Scene& scene, LightList& light_list) 
 		// if the reverse ray hit any other object, it is a shadow
 		if(!reverseRay.intersection.none){
 			if(reverseRay.intersection.t_value <= distToLight) {
-        		ray.col = ray.intersection.mat->ambient;    // overwrites ray colour
+				double transmittance = reverseRay.intersection.mat->transmittance;
+				if(!transmittance){
+	        		ray.col = ray.intersection.mat->ambient;    // overwrites ray colour
+	        	} else {
+	        		ray.col = transmittance*ray.col + (1-transmittance)*ray.intersection.mat->ambient;
+	        	}
+	        	// ray.col = ray.intersection.mat->ambient;
         		ray.col.clamp();
         	}
 		}
@@ -121,48 +144,53 @@ Ray3D Raytracer::getReflectedRay(Ray3D& ray) {
     return reflectedRay;
 }
 
-bool Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay, float& transmittance) {
+bool Raytracer::getRefractedRay(Ray3D& ray, Ray3D& refractedRay) {
 
-    Vector3D incident = -ray.dir; // -ray.dir so that the formula for R works
-    incident.normalize();
+    Vector3D I = -ray.dir; // -ray.dir so that the formula for R works
+    I.normalize();
     Vector3D N = ray.intersection.normal;
     N.normalize();
 
     // refraction coefficient of air and material
-    float n_air = 1.0;
-    float n_mat = ray.intersection.mat->n_refr;
+    double n_air = 1.0;
+    double n_mat = ray.intersection.mat->n_refr;
 
     if (n_mat==0) { return false;}
 
-    float cos_in = incident.dot(N);
-    float theta_in = acos(cos_in);
-    float n_in, n_out;
+    double cos_in = I.dot(N);
+    double theta_in = acos(cos_in);
+    double n_in, n_out;
     if (cos_in < 0.0){
     	// ray is shooting from the object to the air
+    	cos_in = -cos_in;
     	n_in = n_mat;
     	n_out = n_air;
     	theta_in = 2.0*M_PI - theta_in;
     } else {
+    	N = -N;
     	// ray is shooting from the air to the object
     	n_in = n_air;
     	n_out = n_mat;
     }
 
-    float ratio_n = n_in/n_out;
-    float cos_out = sqrt(1.0 - ratio_n*ratio_n*(1.0 - cos_in*cos_in));
-    Vector3D Rr = ratio_n*incident + (ratio_n*cos_in - cos_out)*N;
+    double ratio_n = n_in/n_out;
+    double k = 1.0 - ratio_n*ratio_n*(1.0 - cos_in*cos_in);
+    if (k < 0){ return false;} // total internal reflection, no refraction
+    double cos_out = sqrt(k);
+    Vector3D Rr = -ratio_n*I + -(ratio_n*cos_in - cos_out)*N;
+    Rr.normalize();
 
     // http://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
-    float R0 = pow((n_in - n_out)/(n_in + n_out), 2.0);
-    // Reflectance.
-    float R = R0 + (1.0 - R0)*(1.0 - cos_in);
-    // Transmittance.
-    transmittance = 1.0 - R;
+    // double R0 = pow((n_in - n_out)/(n_in + n_out), 2.0);
+    // // Reflectance.
+    // double R = R0 + (1.0 - R0)*(1.0 - cos_in);
+    // // Transmittance.
+    // transmittance = 1.0 - R;
 	
 	// std::cout << "Ray: (" << ray.dir[0] << ", " << ray.dir[1] << ", " << ray.dir[2] << ")" << std::endl; 
 	// std::cout << "refraction: (" << Rr[0] << ", " << Rr[1] << ", " << Rr[2] << ")" << std::endl;
     // initialize passed in ray
-    refractedRay.origin = ray.intersection.point;
+    refractedRay.origin = ray.intersection.point + EPSILON * Rr;
     refractedRay.dir = Rr;
     refractedRay.dir.normalize();
 
@@ -192,11 +220,11 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 
 #ifdef REFRACTION 
         Ray3D refractedRay;
-        float transmittance;
-        if (getRefractedRay(ray, refractedRay, transmittance)){
-            // TODO: add color by transmittance
+        double Ks = ray.intersection.mat->specular_exp;
+        double transmittance = ray.intersection.mat->transmittance;
+        if (getRefractedRay(ray, refractedRay)){
             Color refractedColor = shadeRay(refractedRay, scene, light_list, depth - 1);
-            col = col + transmittance*refractedColor;
+            col = (1.0 - transmittance)*col + transmittance * refractedColor;
         }
 #endif
 
@@ -215,6 +243,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 
 	Point3D origin(0, 0, 0);
 
+#pragma omp parallel for if(parallelism_enabled)
 	// Construct a ray for each pixel.
 	for (int i = 0; i < image.height; i++) {
 		for (int j = 0; j < image.width; j++) {								
@@ -222,6 +251,8 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			// image plane is at z = -1.
 			Point3D imagePlane;
 			imagePlane[2] = -1;
+			Point3D rand_on_lens;
+			rand_on_lens[2] = 0;
 			Color col;
 #ifndef ANTI_ALIASING
             imagePlane[0] = (-double(image.width)/2 + 0.5 + j)/factor;
@@ -229,13 +260,39 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
             Ray3D ray;
             ray.origin = origin;
             ray.dir = imagePlane - ray.origin;
-
+#ifndef DOF
             // convert ray to world space
             ray.origin = viewToWorld * ray.origin;
             ray.dir = viewToWorld * ray.dir;
 
             int depth = 5;  // number of bounces before ray dies
     		col = shadeRay(ray, scene, light_list, depth);
+#endif
+
+#ifdef DOF 
+			Point3D focal = ray.origin + camera.focalLength*ray.dir;
+			for(int m = 0; m < NUM_RAND_DOF_RAY; m++){
+				for(int n = 0; n < NUM_RAND_DOF_RAY; n++){
+					rand_on_lens[0] = origin[0] + camera.aperture/NUM_RAND_DOF_RAY*(m+0.5);
+					rand_on_lens[1] = origin[1] + camera.aperture/NUM_RAND_DOF_RAY*(n+0.5);
+
+					// create ray in view space (camera space)
+					Ray3D ray;
+		            ray.origin = rand_on_lens;
+		            ray.dir = focal - ray.origin;
+
+		            // convert ray to world space
+		            ray.origin = viewToWorld * ray.origin;
+		            ray.dir = viewToWorld * ray.dir;
+
+		            int depth = 5;  // number of bounces before ray dies
+					Color subcol = shadeRay(ray, scene, light_list, depth);
+					col[0] += subcol[0]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY;
+					col[1] += subcol[1]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY;
+					col[2] += subcol[2]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY;
+				}
+			}
+#endif
 #endif
 
 #ifdef ANTI_ALIASING
