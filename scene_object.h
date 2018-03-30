@@ -69,16 +69,22 @@ class UnitSquare : public SceneObject {
 public:
 	bool intersect(Ray3D& ray, const Matrix4x4& worldToModel, 
 				const Matrix4x4& modelToWorld);
+private:
+	void setUVCoord(Ray3D& ray, Point3D& modelSpaceIPoint);
 };
 
 class UnitSphere : public SceneObject {
 public:
 	bool intersect(Ray3D& ray, const Matrix4x4& worldToModel, 
 				const Matrix4x4& modelToWorld);
+private:
+	void setUVCoord(Ray3D& ray, Point3D& modelSpaceIPoint);
 };
 
 class UnitCylinder : public SceneObject {
 public:
 	bool intersect(Ray3D& ray, const Matrix4x4& worldToModel, 
 				const Matrix4x4& modelToWorld);
+private:
+	void setUVCoord(Ray3D& ray, Point3D& modelSpaceIPoint);
 };

@@ -386,3 +386,40 @@ std::ostream& operator <<(std::ostream& os, const Matrix4x4& M) {
 
 
 
+/** TEXTURE MAPPING **/
+
+/**
+ *
+ * @param ray
+ * @return 		the color of the texture map corresponding to the uvCoordinate
+ */
+Color Material::getTextureColor(const Ray3D& ray) {
+	if (texture == nullptr) {
+		return Color(1.0, 1.0, 1.0);	// just return all 1's if no texture
+	}
+	return texture->getColor(ray.intersection.uvCoord);
+}
+
+Texture::Texture(std::string file) {
+	// true if error
+	if (bmp_read(file.c_str(), &width, &height, &rarray, &garray, &barray)) {
+		std::cerr << "Failed to read in bitmap" << std::endl;
+		exit(-1);
+	}
+	std::cout << "Successfully read texture " << file << std::endl;
+}
+
+Texture::~Texture() {
+	delete rarray;
+	delete garray;
+	delete barray;
+}
+
+Color Texture::getColor(const Point3D& uvCoord) {
+
+    // use floor function to get rid of decimal part of uv coordinate
+	long x = ((long) floor(uvCoord[0] * width)) % width;
+	long y = ((long) floor(uvCoord[1] * height)) % height;
+    long i = y * width + x;
+	return Color(rarray[i]/255., garray[i]/255., barray[i]/255.);
+}

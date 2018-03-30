@@ -12,8 +12,10 @@ void scene_basic(int width, int height);
 void scene_walls(int width, int height);
 void scene_spheres(int, int);
 void scene_refrac(int width, int height);
+void scene_texture_map(int width, int height);
 
 static Point3D origin(0,0,0);
+#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
 
 int main(int argc, char* argv[])
 {
@@ -30,8 +32,9 @@ int main(int argc, char* argv[])
 		height = atoi(argv[2]);
 	}
     std::cout << "Width: " << width << " height: " << height << std::endl;
-	
-	scene_basic(width, height);
+
+    scene_texture_map(width, height);
+//	scene_basic(width, height);
 //	scene_spheres(width, height);
 //    scene_walls(width, height);
 //	scene_refrac(width, height);
@@ -97,6 +100,76 @@ void scene_refrac(int width, int height){
 
 }
 
+void scene_texture_map(int width, int height) {
+    Raytracer raytracer;
+    LightList light_list;
+    Scene scene;
+
+    Point3D north(Point3D(0,6,2));
+    Point3D east(Point3D(6,0,2));
+    Point3D south(Point3D(0,-6,2));
+    Point3D west(Point3D(-6,0,2));
+    Point3D up(Point3D(0,0,6));
+    Point3D down(Point3D(0,0,-6));
+
+    Color ambColor(1.0,1.0,1.0);
+    Color difColor(1.0,1.0,1.0);
+    Color speColor(0.0,0.0,0.0);
+    // Defines a point light source.
+    PointLight* pLight1 = new PointLight(north, ambColor, difColor, speColor);
+    PointLight* pLight2 = new PointLight(east, ambColor, difColor, speColor);
+    PointLight* pLight3 = new PointLight(south, ambColor, difColor, speColor);
+    PointLight* pLight4 = new PointLight(west, ambColor, difColor, speColor);
+    PointLight* pLight5 = new PointLight(up, ambColor, difColor, speColor);
+    PointLight* pLight6 = new PointLight(down, ambColor, difColor, speColor);
+    light_list.push_back(pLight1);
+    light_list.push_back(pLight2);
+    light_list.push_back(pLight3);
+    light_list.push_back(pLight4);
+    light_list.push_back(pLight5);
+    light_list.push_back(pLight6);
+
+    Texture textureEarth = Texture("texture_earth.bmp");
+    Texture textureNumGrid = Texture("texture_numgrid.bmp");
+
+    Material earth(Color(0.1,0.1,0.1), Color(0.9, 0.9, 0.9), Color(0.1, 0.1, 0.1), 1);
+    earth.texture = &textureEarth;
+    Material numGrid(Color(0.1,0.1,0.1), Color(0.9, 0.9, 0.9), Color(0.1, 0.1, 0.1), 1);
+    numGrid.texture = &textureNumGrid;
+
+    SceneNode* sphere = new SceneNode(new UnitSphere(), &earth);
+    scene.push_back(sphere);
+    double sphereScale[3] = { 2.0, 2.0, 2.0 };
+    sphere->scale(origin, sphereScale);
+
+    SceneNode* plane = new SceneNode(new UnitSquare(), &numGrid);
+    scene.push_back(plane);
+    double planeScale[3] = {10.0, 10.0, 1.0};
+    plane->scale(origin, planeScale);
+    plane->translate(Vector3D(0, 0, -4));   // move it down so it doesn't intersect sphere
+
+
+    Point3D cameraPositions[6] = {north, east, south, west, Point3D(5,5,5), Point3D(-5,-5,-5)};
+    for (int i = 0; i < NELEMS(cameraPositions); i++) {
+        Point3D cameraPos = cameraPositions[i];
+        Camera camera1(cameraPos, origin - cameraPos, Vector3D(0, 0, 1), 60.0);
+        Image image1(width, height);
+        raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
+
+        image1.flushPixelBuffer("tm" + std::to_string(i) + ".bmp"); //save rendered image to file
+        std::cout << "Finished " << i << std::endl;
+    }
+
+    // Free memory
+    for (size_t i = 0; i < scene.size(); ++i) {
+        delete scene[i];
+    }
+
+    for (size_t i = 0; i < light_list.size(); ++i) {
+        delete light_list[i];
+    }
+}
+
 void scene_walls(int width, int height) {
     Point3D eye(0, 2, 10);
     Vector3D view(0, 0, -1);
@@ -135,10 +208,12 @@ void scene_walls(int width, int height) {
                    Color(0.5, 0.5, 0.5),
                    1);
 
+    Texture textureEarth = Texture("texture_earth.bmp");
     Material earth(Color(0.1, 0.1, 0.1),
                    Color(0.8, 0.8, 0.8),
                    Color(0.1, 0.1, 0.1),
                    10);
+    earth.texture = &textureEarth;
 
     Material silver(Color(0.19125, 0.19125, 0.19125),
                     Color(0.50754, 0.50754, 0.50754),

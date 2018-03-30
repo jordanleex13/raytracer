@@ -54,6 +54,10 @@ void PointLight::shade(Ray3D& ray) {
     } else if (RENDER_TYPE == FULL_PHONG) {
         temp = amb + diff + spec;
     }
+
+    // adds the texture if any. will not affect colour if there's no texture
+    temp = temp * mat->getTextureColor(ray);
+
     ray.col = ray.col + temp; // color is additive
     ray.col.clamp();
 }

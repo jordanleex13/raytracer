@@ -16,6 +16,10 @@
 #define M_PI	3.14159265358979323846
 #endif
 
+#define M_PI_TIMES_2	6.283185307179586
+
+struct Ray3D; // forward declaration
+
 class Point3D {
 public:
 	Point3D(); 
@@ -124,10 +128,26 @@ Color operator *(double s, const Color& c);
 Color operator +(const Color& u, const Color& v); 
 std::ostream& operator <<(std::ostream& o, const Color& c); 
 
+struct Texture {
+	Texture(std::string file);
+	~Texture();
+	Color getColor(const Point3D& uvCoord);
+
+private:
+//http://csclab.murraystate.edu/~bob.pilgrim/515/earth_physical.bmp
+//	bool bmp_read ( char const *file_in_name, unsigned long int *width, long int *height,
+//					unsigned char **rarray, unsigned char **garray, unsigned char **barray )
+	// all parameters set in constructor
+	unsigned long width;
+	long height;
+	unsigned char* rarray;
+	unsigned char* garray;
+	unsigned char* barray;
+};
 struct Material {
 	Material(Color ambient, Color diffuse, Color specular, double exp) :
 		ambient(ambient), diffuse(diffuse), specular(specular), 
-		specular_exp(exp), n_refr(0.0) {}
+		specular_exp(exp), n_refr(0.0), texture(nullptr) {}
 
 	Material(Color ambient, Color diffuse, Color specular, double exp, float n) :
 		ambient(ambient), diffuse(diffuse), specular(specular), 
@@ -141,6 +161,9 @@ struct Material {
 
 	// Refraction coefficient 
 	float n_refr;
+
+	Texture* texture;
+	Color getTextureColor(const Ray3D& ray);
 };
 
 struct Intersection {
@@ -157,6 +180,9 @@ struct Intersection {
 	double t_value;	
 	// Set to true when no intersection has occured.
 	bool none;
+
+    // only set when texture mapping is enabled
+	Point3D uvCoord;
 };
 
 // Ray structure. 

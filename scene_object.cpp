@@ -122,6 +122,7 @@ bool UnitSquare::intersect(Ray3D &ray, const Matrix4x4 &worldToModel, const Matr
 		if (ray.intersection.none || t < ray.intersection.t_value) {
 
 			ray.intersection.point = modelToWorld * planeIntersection;	// convert back to world
+            setUVCoord(ray, planeIntersection);
 
 			// TODO i assume i don't need to do the inverse transpose and that the function does it for me
 			ray.intersection.normal = transNorm(worldToModel, N);
@@ -133,6 +134,11 @@ bool UnitSquare::intersect(Ray3D &ray, const Matrix4x4 &worldToModel, const Matr
 		}
 	}
 	return false;
+}
+
+void UnitSquare::setUVCoord(Ray3D& ray, Point3D& modelSpaceIPoint) {
+    // magic numbers to get orientation correct
+	ray.intersection.uvCoord = Point3D(modelSpaceIPoint[1], 1.0 - modelSpaceIPoint[0], 0);
 }
 
 bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Matrix4x4& modelToWorld) {
@@ -178,6 +184,7 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Matr
 	// check if already a valid intersection, update if this one is closer
 	if (ray.intersection.none || t < ray.intersection.t_value) {
 		ray.intersection.point = modelToWorld * sphereIntersection;
+        setUVCoord(ray, sphereIntersection);
 
 		ray.intersection.normal = transNorm(worldToModel, sphereIntersection - center);
 		ray.intersection.normal.normalize();
@@ -188,6 +195,18 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Matr
 	}
 	return false;
 }
+
+void UnitSphere::setUVCoord(Ray3D &ray, Point3D& modelSpaceIPoint) {
+
+	// https://en.wikipedia.org/wiki/UV_mapping
+	double theta = acos(modelSpaceIPoint[2]);
+	double phi = atan2(modelSpaceIPoint[1], modelSpaceIPoint[0]);
+	phi = phi < 0 ? phi + M_PI_TIMES_2 : phi;   // can't do modulo with doubles
+	double u = phi / (M_PI_TIMES_2);
+	double v = (M_PI - theta) / M_PI;
+	ray.intersection.uvCoord = Point3D(u, v, 0);
+}
+
 
 void SceneNode::rotate(char axis, double angle) {
 	Matrix4x4 rotation;
