@@ -24,8 +24,12 @@ Advanced features:
 External reference:
 - A paper explaining how refraction works in graphics:
   http://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
+- Formula for UV mapping
+  https://en.wikipedia.org/wiki/UV_mapping
+- Various formulas for intersection and ray tracing
+  http://www.teach.cs.toronto.edu/~moore/csc418/Notes/BasicRayTracing.pdf
 
 Role of each member:
-Ginny is responsible for implementing anti-aliasing, depth of field, refraction and fresnel law.
-Gordon is responsible for setting up basic ray tracing, implementing recursive ray tracing, extended light source, texture mapping, reflection and glossy effect.
+Ginny is responsible for implementing anti-aliasing, depth of field, refraction and Fresnel law.
+Jordan is responsible for setting up basic ray tracing, implementing recursive ray tracing, soft shadows, texture mapping, reflection and glossy effect.
 Both two members worked together in setting up scenes and testing features.
