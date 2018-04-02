@@ -14,7 +14,7 @@
 #define EPSILON 0.0001
 
 
-// #define MULTITHREADING // Toggle option for multithreading 
+#define MULTITHREADING // Toggle option for multithreading 
 
 #ifdef MULTITHREADING
 #include <omp.h>
@@ -27,19 +27,19 @@
 
 // Turning on ANTI_ALIASING will disable DOF feature automatically
 
-//#define ANTI_ALIASING
-//#define NUM_ANTIALIASING_RAY 3
-//
-//#define DOF
-//#define NUM_RAND_DOF_RAY 6
-//
-//#define SHADOWING
-//#define SOFT_SHADOWS
-//
-//#define REFLECTION
-//#define GLOSSY
-//
-//#define REFRACTION
+#define ANTI_ALIASING
+#define NUM_ANTIALIASING_RAY 3
+
+// #define DOF
+// #define NUM_RAND_DOF_RAY 3
+
+#define SHADOWING
+#define SOFT_SHADOWS
+
+#define REFLECTION
+#define GLOSSY
+
+#define REFRACTION
 
 void Raytracer::traverseScene(Scene &scene, Ray3D &ray) {
     for (size_t i = 0; i < scene.size(); ++i) {
@@ -162,14 +162,14 @@ bool Raytracer::getRefractedRay(Ray3D &ray, Ray3D &refractedRay, double &T) {
     if (n_mat == 0) { return false; }
 
     double cos_in = I.dot(N);
-//    double theta_in = acos(cos_in);
+    // double theta_in = acos(cos_in);
     double n_in, n_out;
     if (cos_in < 0.0) {
         // ray is shooting from the object to the air
         cos_in = -cos_in;
         n_in = n_mat;
         n_out = n_air;
-//    	theta_in = 2.0*M_PI - theta_in;
+   	    // theta_in = 2.0*M_PI - theta_in;
     } else {
         N = -N;
         // ray is shooting from the air to the object
@@ -249,6 +249,7 @@ void Raytracer::render(Camera &camera, Scene &scene, LightList &light_list, Imag
     computeTransforms(scene);
 
     Matrix4x4 viewToWorld;
+    assert(tan(camera.fov * M_PI / 360.0) != 0);
     double factor = (double(image.height) / 2) / tan(camera.fov * M_PI / 360.0);
 
     viewToWorld = camera.initInvViewMatrix();
@@ -256,6 +257,7 @@ void Raytracer::render(Camera &camera, Scene &scene, LightList &light_list, Imag
     Point3D origin(0, 0, 0);
 
 #pragma omp parallel for if(parallelism_enabled)
+    int depth = 10;  // number of bounces before ray dies
     // Construct a ray for each pixel.
     for (int i = 0; i < image.height; i++) {
         for (int j = 0; j < image.width; j++) {
@@ -272,21 +274,13 @@ void Raytracer::render(Camera &camera, Scene &scene, LightList &light_list, Imag
             Ray3D ray;
             ray.origin = origin;
             ray.dir = imagePlane - ray.origin;
-#ifndef DOF
-            // convert ray to world space
-            ray.origin = viewToWorld * ray.origin;
-            ray.dir = viewToWorld * ray.dir;
-
-            int depth = 5;  // number of bounces before ray dies
-            col = shadeRay(ray, scene, light_list, depth);
-#endif
 
 #ifdef DOF
             Point3D focal = ray.origin + camera.focalLength*ray.dir;
-            for(int m = 0; m < NUM_RAND_DOF_RAY; m++){
-                for(int n = 0; n < NUM_RAND_DOF_RAY; n++){
-                    rand_on_lens[0] = origin[0] + camera.aperture/NUM_RAND_DOF_RAY*(m+0.5);
-                    rand_on_lens[1] = origin[1] + camera.aperture/NUM_RAND_DOF_RAY*(n+0.5);
+            for(int a = 0; a < NUM_RAND_DOF_RAY; a++){
+                for(int b = 0; b < NUM_RAND_DOF_RAY; b++){
+                    rand_on_lens[0] = origin[0] + camera.aperture/NUM_RAND_DOF_RAY*(a+0.5);
+                    rand_on_lens[1] = origin[1] + camera.aperture/NUM_RAND_DOF_RAY*(b+0.5);
 
                     // create ray in view space (camera space)
                     Ray3D ray;
@@ -297,13 +291,18 @@ void Raytracer::render(Camera &camera, Scene &scene, LightList &light_list, Imag
                     ray.origin = viewToWorld * ray.origin;
                     ray.dir = viewToWorld * ray.dir;
 
-                    int depth = 5;  // number of bounces before ray dies
                     Color subcol = shadeRay(ray, scene, light_list, depth);
                     col[0] += subcol[0]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY;
                     col[1] += subcol[1]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY;
                     col[2] += subcol[2]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY;
                 }
             }
+#else //DOF not defined
+            // convert ray to world space
+            ray.origin = viewToWorld * ray.origin;
+            ray.dir = viewToWorld * ray.dir;
+
+            col = shadeRay(ray, scene, light_list, depth);
 #endif
 #endif
 
@@ -323,18 +322,42 @@ void Raytracer::render(Camera &camera, Scene &scene, LightList &light_list, Imag
                     // convert ray to world space
                     ray.origin = viewToWorld * ray.origin;
                     ray.dir = viewToWorld * ray.dir;
+#ifdef DOF
+                    Point3D focal = ray.origin + camera.focalLength*ray.dir;
+                    for(int a = 0; a < NUM_RAND_DOF_RAY; a++){
+                        for(int b = 0; b < NUM_RAND_DOF_RAY; b++){
+                            // std::cout << "antialiasing: (" << m << ", " << n <<")" <<"dof: (" << a << ", " << b << ")" << std::endl; 
+                            rand_on_lens[0] = origin[0] + camera.aperture/NUM_RAND_DOF_RAY*(a+0.5);
+                            rand_on_lens[1] = origin[1] + camera.aperture/NUM_RAND_DOF_RAY*(b+0.5);
 
+                            // create ray in view space (camera space)
+                            Ray3D ray;
+                            ray.origin = rand_on_lens;
+                            ray.dir = focal - ray.origin;
+
+                            // convert ray to world space
+                            ray.origin = viewToWorld * ray.origin;
+                            ray.dir = viewToWorld * ray.dir;
+
+                            Color subcol = shadeRay(ray, scene, light_list, depth);
+                            col[0] += subcol[0]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY/ NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
+                            col[1] += subcol[1]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY/ NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
+                            col[2] += subcol[2]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY/ NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
+                        }
+                    }
+#else
                     // after converting the camera position and ray origin should be same
                     assert(ray.origin[0] == camera.eye[0] && ray.origin[1] == camera.eye[1] &&
                            ray.origin[2] == camera.eye[2]);
 
-                    int depth = 5;  // number of bounces before ray dies
                     Color subcol = shadeRay(ray, scene, light_list, depth);
                     col[0] += subcol[0] / NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
                     col[1] += subcol[1] / NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
                     col[2] += subcol[2] / NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
+#endif 
                 }
             }
+
 #endif
             image.setColorAtPixel(i, j, col);
         }

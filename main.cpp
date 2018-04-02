@@ -62,16 +62,16 @@ int main(int argc, char *argv[]) {
     Scene scene;
 
     // Enable exactly 1 scene
-//    scene_basic(raytracer, light_list, scene, width, height);
-//    scene_soft_shadows(raytracer, light_list, scene, width, height);
-//    scene_texture_map(raytracer, light_list, scene, width, height);
-//    scene_cylinder(raytracer, light_list, scene, width, height);
-//    scene_anti_aliasing(raytracer, light_list, scene, width, height);
-//    scene_spheres(raytracer, light_list, scene, width, height);
-//    scene_glossy(raytracer, light_list, scene, width, height);
-//    scene_refrac(raytracer, light_list, scene, width, height);
-//    scene_DOF(raytracer, light_list, scene, width, height);
-//    scene_wow(raytracer, light_list, scene, width, height);
+    // scene_basic(raytracer, light_list, scene, width, height);
+    // scene_soft_shadows(raytracer, light_list, scene, width, height);
+    // scene_texture_map(raytracer, light_list, scene, width, height);
+    // scene_cylinder(raytracer, light_list, scene, width, height);
+    // scene_anti_aliasing(raytracer, light_list, scene, width, height);
+    // scene_spheres(raytracer, light_list, scene, width, height);
+    // scene_glossy(raytracer, light_list, scene, width, height);
+    // scene_refrac(raytracer, light_list, scene, width, height);
+    // scene_DOF(raytracer, light_list, scene, width, height);
+    // scene_wow(raytracer, light_list, scene, width, height);
     scene_infinite_mirror(raytracer, light_list, scene, width, height);
 
     // Free memory
@@ -89,37 +89,48 @@ int main(int argc, char *argv[]) {
 
 void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& scene, int width, int height) {
     std::cout << "Rendering infinite mirror scene" << std::endl;
+    double fov = 60.0;
+    double aperture = 0.6;
+    double focalLength = 12.0;
+    double focalRange = 4.0;
 
     PointLight *pLight1 = new PointLight(Point3D(25, -10, 10), Color(0.9, 0.9, 0.9));
     light_list.push_back(pLight1);
 
     Color dim(0.1, 0.1, 0.1);
     Color bright(1.0, 1.0, 1.0);
-    // Material diffuseR(Color(0.2, 0.0, 0.0), Color(0.9, 0.0, 0.0), dim, 1.0);
-    // Material diffuseG(Color(0.0, 0.2, 0.0), Color(0.0, 0.9, 0.0), dim, 1.0);
-    // Material diffuseB(Color(0.0, 0.0, 0.2), Color(0.0, 0.0, 0.9), dim, 1.0);
-    // Material diffuseY(Color(0.2, 0.2, 0.0), Color(0.9, 0.9, 0.0), dim, 1.0);
+    Material diffuseR(Color(0.2, 0.0, 0.0), Color(0.7, 0.0, 0.0), dim, 1.0);
+    Material diffuseG(Color(0.0, 0.2, 0.0), Color(0.0, 0.7, 0.0), dim, 1.0);
+    Material diffuseB(Color(0.0, 0.0, 0.2), Color(0.0, 0.0, 0.7), dim, 1.0);
+    Material diffuseY(Color(0.2, 0.2, 0.0), Color(0.9, 0.7, 0.0), dim, 1.0);
 
     Material white(dim, bright, dim, 1.0);
     Material mirror(Color(0.001, 0.001, 0.001), Color(0.0, 0.0, 0.0), Color(0.999, 0.999, 0.999), 10000.0);
 
     Texture textureBoard = Texture("resources/texture_board.bmp");
-    Material board(Color(0.1, 0.1, 0.1), Color(0.9, 0.9, 0.9), Color(0.1, 0.1, 0.1), 1.0);
+    Texture textureFloor = Texture("resources/texture_floor.bmp");
+
+    Material board(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 1.0);
+    Material floor_mat(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 10.0);
+
     board.texture = &textureBoard;
+    floor_mat.texture = &textureFloor;
 
     /* Walls */
-    SceneNode *floor = new SceneNode(new UnitSquare(), &board);
+    SceneNode *floor = new SceneNode(new UnitSquare(), &white);
     SceneNode *ceiling = new SceneNode(new UnitSquare(), &mirror);
     SceneNode *backWall = new SceneNode(new UnitSquare(), &mirror);
+    SceneNode *frontWall = new SceneNode(new UnitSquare(), &mirror);
     SceneNode *leftWall = new SceneNode(new UnitSquare(), &mirror);
     SceneNode *rightWall = new SceneNode(new UnitSquare(), &mirror);
     scene.push_back(floor);
+    scene.push_back(ceiling);
     scene.push_back(backWall);
+    scene.push_back(frontWall);
     scene.push_back(leftWall);
     scene.push_back(rightWall);
-    scene.push_back(ceiling);
 
-    double wallScale[3] = {100.0, 100.0, 100.0};
+    double wallScale[3] = {300.0, 300.0, 300.0};
     floor->translate(Vector3D(30, 0, 0));     // floor @ z = 0
     floor->scale(origin, wallScale);
 
@@ -128,7 +139,11 @@ void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& s
 
     backWall->translate(Vector3D(0, 0, 20));
     backWall->rotate('y', 90);
-    backWall->scale(origin, wallScale);
+    backWall->scale(origin, wallScale);    
+
+    frontWall->translate(Vector3D(55, 0, 20));
+    frontWall->rotate('y', -90);
+    frontWall->scale(origin, wallScale);
 
     leftWall->translate(Vector3D(0, -15, 0));
     leftWall->rotate('x', -90);
@@ -141,17 +156,28 @@ void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& s
 
     /* Actual objects */
     Texture textureEarth = Texture("resources/texture_earth.bmp");
+    Texture textureGranite = Texture("resources/texture_granite.bmp");
+    Texture textureIce = Texture("resources/texture_ice.bmp");
 
-    Material earth(Color(0.1, 0.1, 0.1), Color(0.9, 0.9, 0.9), Color(0.1, 0.1, 0.1), 1.0);
+    Material earth(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 1.0);
+    Material granite(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 10.0);
+    Material ice(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 10.0);
     earth.texture = &textureEarth;
-    Material transparent(Color(0.2, 0.2, 0.2), Color(1.0, 1.0, 1.0), Color(0.5, 0.5, 0.5), 1.0, 1.33, 0.9);
+    granite.texture = &textureGranite;
+    ice.texture = &textureIce;
+
+    Material transparent(Color(0.2, 0.2, 0.2), Color(1.0, 1.0, 1.0), Color(0.5, 0.5, 0.5), 1.0, 1.33, 0.95);
 
     SceneNode *globe = new SceneNode(new UnitSphere(), &earth);
+    SceneNode *stone = new SceneNode(new UnitSphere(), &granite);
+    SceneNode *iceball = new SceneNode(new UnitSphere(), &ice);
     SceneNode *mirrorSphere1 = new SceneNode(new UnitSphere(), &mirror);
     SceneNode *mirrorSphere2 = new SceneNode(new UnitSphere(), &mirror);
     SceneNode *glassSphere = new SceneNode(new UnitSphere(), &transparent);
 
     scene.push_back(globe);
+    scene.push_back(stone);
+    scene.push_back(iceball);
     scene.push_back(mirrorSphere1);
     scene.push_back(mirrorSphere2);
     scene.push_back(glassSphere);
@@ -161,23 +187,30 @@ void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& s
 
     globe->scale(origin, sphereScale);
     globe->rotate('z', 180);
-    globe->translate(Vector3D(-2.5, -3, 1.5));  // had to make all this negative to account for rotation
+    globe->translate(Vector3D(-2.5, 3, 3.0));  // had to make all this negative to account for rotation
 
     mirrorSphere1->scale(origin, sphereScale);
-    mirrorSphere1->translate(Vector3D(4, -1.75, 1));
+    mirrorSphere1->translate(Vector3D(4, -2.5, 1));
 
     mirrorSphere2->scale(origin, sphereScale);
     mirrorSphere2->translate(Vector3D(1, -1, 3.5));
 
-    double smallScale[3] = {1.5, 1.5, 1.5};
-    glassSphere->scale(origin, smallScale);
-    glassSphere->translate(Vector3D(12.0, 3.0, 2));
+    stone->scale(origin, sphereScale);
+    stone->translate(Vector3D(4, 0.5, 2.5));
 
-    Point3D cameraPositions[3] = {Point3D(35, 0, 10), Point3D(20, 4, 10), Point3D(55, 4, 10)};
+    iceball->scale(origin, sphereScale);
+    iceball->translate(Vector3D(4, 2.0, 4.0));
+
+    double smallScale[3] = {1.5, 1.5, 1.5};
+    double largeScale[3] = {4.0, 4.0, 4.0};
+    glassSphere->scale(origin, largeScale);
+    glassSphere->translate(Vector3D(4.0, 1.5, 2.0));
+
+    Point3D cameraPositions[2] = {Point3D(35, 0, 10),Point3D(55, 4, 10)};
     for (int i = 0; i < NELEMS(cameraPositions); i++) {
         Point3D cameraPos = cameraPositions[i];
         // look slightly above floor
-        Camera camera1(cameraPos, Point3D(0, 0, 8) - cameraPos, Vector3D(0, 0, 1), 60.0);
+        Camera camera1(cameraPos, Point3D(0, 0, 8) - cameraPos, Vector3D(0, 0, 1), fov, aperture, focalLength, focalRange);
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
 
