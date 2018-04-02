@@ -389,7 +389,7 @@ std::ostream& operator <<(std::ostream& os, const Matrix4x4& M) {
 /** TEXTURE MAPPING **/
 
 /**
- *
+ * Return the color of the texture map given a ray (that has uv coordinates)
  * @param ray
  * @return 		the color of the texture map corresponding to the uvCoordinate
  */
@@ -400,6 +400,10 @@ Color Material::getTextureColor(const Ray3D& ray) {
 	return texture->getColor(ray.intersection.uvCoord);
 }
 
+/**
+ * Constructor for texture
+ * @param file 		file to get texture (should be bmp)
+ */
 Texture::Texture(std::string file) {
 	// true if error
 	if (bmp_read(file.c_str(), &width, &height, &rarray, &garray, &barray)) {
@@ -415,6 +419,11 @@ Texture::~Texture() {
 	delete barray;
 }
 
+/**
+ * Gets colour at a specific texel specified by uvCoord
+ * @param uvCoord
+ * @return
+ */
 Color Texture::getColor(const Point3D& uvCoord) {
 
     // use floor function to get rid of decimal part of uv coordinate

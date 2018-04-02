@@ -29,16 +29,16 @@
 
 //#define ANTI_ALIASING
 //#define NUM_ANTIALIASING_RAY 3
-
+//
 //#define DOF
 //#define NUM_RAND_DOF_RAY 6
-
+//
 //#define SHADOWING
 //#define SOFT_SHADOWS
-
+//
 //#define REFLECTION
 //#define GLOSSY
-
+//
 //#define REFRACTION
 
 void Raytracer::traverseScene(Scene &scene, Ray3D &ray) {
@@ -72,14 +72,17 @@ void Raytracer::computeShading(Ray3D &ray, Scene &scene, LightList &light_list) 
         // shoot a ray in the reverse light direction
         Point3D lightPos = light->get_position();
 
-        // sample from random unit sphere to get soft shadow effect
+        // sample from random unit sphere to get soft shadow effect. Less computational than having a bunch of point lights
 #ifdef SOFT_SHADOWS
-        double r = 0.9 * generateRandom();  // TODO play around with r value to get better looking soft shadows
+        double r = 0.9 * generateRandom();
         double theta = 2 * M_PI * generateRandom();
         double phi = 2 * M_PI * generateRandom();
+
+        // randomly displace the position of the light to simulate a 'sphere light'
         lightPos = lightPos + Vector3D(r * cos(theta) * sin(phi), r * sin(theta) * sin(phi), r * cos(phi));
 #endif
 
+        // get vector going in opposite direction
         Point3D intersection = ray.intersection.point;
         Vector3D reverseLightVect = lightPos - intersection;
         double distToLight = reverseLightVect.length();
@@ -88,7 +91,7 @@ void Raytracer::computeShading(Ray3D &ray, Scene &scene, LightList &light_list) 
         Point3D startPos = intersection + EPSILON * reverseLightVect;
         Ray3D reverseRay(startPos, reverseLightVect);
         traverseScene(scene, reverseRay);
-        // if the reverse ray hit any other object, it is a shadow
+        // if the reverse ray hit any other object, it's shadow
         if (!reverseRay.intersection.none) {
             if (reverseRay.intersection.t_value <= distToLight) {
                 double transmittance = reverseRay.intersection.mat->transmittance;
@@ -106,7 +109,7 @@ void Raytracer::computeShading(Ray3D &ray, Scene &scene, LightList &light_list) 
 
 Ray3D Raytracer::getReflectedRay(Ray3D &ray) {
 
-    Vector3D incident = -ray.dir; // -ray.dir so that the formula for R works
+    Vector3D incident = -ray.dir;
     incident.normalize();
     Vector3D N = ray.intersection.normal;
     N.normalize();
@@ -119,12 +122,13 @@ Ray3D Raytracer::getReflectedRay(Ray3D &ray) {
     Ray3D reflectedRay(ray.intersection.point + EPSILON * R, R);
 
 #ifdef GLOSSY
-    // Glossy reflection (see tutorial slides)
+    // Glossy reflection simulates 'roughness'
     Vector3D u = R.cross(N);
     u.normalize();
     Vector3D v = R.cross(u);
     v.normalize();
 
+    // Predict roughness value using alpha (specular exponent)
     // when alpha -> infinity, it's shiny, not rough
     // when roughness -> 0, theta phi -> 0, thus xy -> 0, z->1
     double roughness = 2 * M_PI * (1.0 / (ray.intersection.mat->specular_exp + 1.0));
@@ -146,7 +150,7 @@ Ray3D Raytracer::getReflectedRay(Ray3D &ray) {
 
 bool Raytracer::getRefractedRay(Ray3D &ray, Ray3D &refractedRay, double &T) {
 
-    Vector3D I = -ray.dir; // -ray.dir so that the formula for R works
+    Vector3D I = -ray.dir;
     I.normalize();
     Vector3D N = ray.intersection.normal;
     N.normalize();
@@ -158,7 +162,7 @@ bool Raytracer::getRefractedRay(Ray3D &ray, Ray3D &refractedRay, double &T) {
     if (n_mat == 0) { return false; }
 
     double cos_in = I.dot(N);
-    double theta_in = acos(cos_in);
+//    double theta_in = acos(cos_in);
     double n_in, n_out;
     if (cos_in < 0.0) {
         // ray is shooting from the object to the air

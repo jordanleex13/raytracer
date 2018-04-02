@@ -10,8 +10,10 @@
 
 #define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
 
-
+// This is the same for part 1
 void scene_basic(Raytracer&, LightList&, Scene&, int, int);
+
+// These scenes showcase features
 void scene_cylinder(Raytracer&, LightList&, Scene&, int, int);
 void scene_spheres(Raytracer&, LightList&, Scene&, int, int);
 void scene_glossy(Raytracer&, LightList&, Scene&, int, int);
@@ -44,11 +46,7 @@ Material glossy(Color(0.01, 0.01, 0.01), Color(0.1, 0.1, 0.1), Color(0.8, 0.8, 0
 
 
 int main(int argc, char *argv[]) {
-    // Build your scene and setup your camera here, by calling
-    // functions from Raytracer.  The code here sets up an example
-    // scene and renders it from two different view points, DO NOT
-    // change this if you're just implementing part one of the
-    // assignment.
+
     int width = 320;
     int height = 240;
 
@@ -62,6 +60,7 @@ int main(int argc, char *argv[]) {
     LightList light_list;
     Scene scene;
 
+    // Enable exactly 1 scene
 //    scene_basic(raytracer, light_list, scene, width, height);
 //    scene_soft_shadows(raytracer, light_list, scene, width, height);
 //    scene_texture_map(raytracer, light_list, scene, width, height);
@@ -327,7 +326,7 @@ void scene_texture_map(Raytracer& raytracer, LightList& light_list, Scene& scene
     light_list.push_back(pLight6);
 
     Texture textureEarth = Texture("resources/texture_earth.bmp");
-    Texture textureNumGrid = Texture("resources/texture_numgrid.bmp");
+    Texture textureNumGrid = Texture("resources/texture_board.bmp");
 
     Material earth(Color(0.1, 0.1, 0.1), Color(0.9, 0.9, 0.9), Color(0.1, 0.1, 0.1), 1);
     earth.texture = &textureEarth;

@@ -8,9 +8,7 @@
 
 #include <cmath>
 #include <iostream>
-#include <cassert>
 #include "scene_object.h"
-#include <vector>
 
 bool UnitCylinder::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Matrix4x4& modelToWorld) {
 	// defining a unit cylinder with radius = 1, height = 1, centered at origin (0,0,0)
@@ -90,17 +88,11 @@ bool UnitCylinder::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Ma
 }
 
 bool UnitSquare::intersect(Ray3D &ray, const Matrix4x4 &worldToModel, const Matrix4x4 &modelToWorld) {
-	// TODO: implement intersection code for UnitSquare, which is
-	// defined on the xy-plane, with vertices (0.5, 0.5, 0), 
-	// (-0.5, 0.5, 0), (-0.5, -0.5, 0), (0.5, -0.5, 0), and normal
-	// (0, 0, 1).
-	//
-	// Your goal here is to fill ray.intersection with correct values
-	// should an intersection occur.  This includes intersection.point, 
-	// intersection.normal, intersection.none, intersection.t_value.   
-	//
-	// HINT: Remember to first transform the ray into object space  
-	// to simplify the intersection test.
+    /*
+     * Unit square defined on the xy-plane
+     * Vertices (0.5, 0.5, 0), (-0.5, 0.5, 0), (-0.5, -0.5, 0), (0.5, -0.5, 0)
+     * Normal (0, 0, 1).
+     */
 
 	// convert to object space
 	Point3D eye = worldToModel * ray.origin;
@@ -124,14 +116,13 @@ bool UnitSquare::intersect(Ray3D &ray, const Matrix4x4 &worldToModel, const Matr
 	double y = planeIntersection[1];
 
 	// check if inside unit square
-	if (x < 0.5 && x > -0.5 && y < 0.5 && y > -0.5) {
+	if (x > -0.5 && x < 0.5 && y > -0.5 && y < 0.5) {
 		// check if already a valid intersection, update if this one is closer
 		if (ray.intersection.none || t < ray.intersection.t_value) {
 
 			ray.intersection.point = modelToWorld * planeIntersection;	// convert back to world
             setUVCoord(ray, planeIntersection);
 
-			// TODO i assume i don't need to do the inverse transpose and that the function does it for me
 			ray.intersection.normal = transNorm(worldToModel, N);
 			ray.intersection.normal.normalize();
 
@@ -144,20 +135,13 @@ bool UnitSquare::intersect(Ray3D &ray, const Matrix4x4 &worldToModel, const Matr
 }
 
 void UnitSquare::setUVCoord(Ray3D& ray, Point3D& modelSpaceIPoint) {
-    // magic numbers to get orientation correct
-	ray.intersection.uvCoord = Point3D(modelSpaceIPoint[1], 1.0 - modelSpaceIPoint[0], 0);
+	ray.intersection.uvCoord = Point3D(modelSpaceIPoint[0], 1.0 - modelSpaceIPoint[1], 0);
 }
 
 bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Matrix4x4& modelToWorld) {
-	// TODO: implement intersection code for UnitSphere, which is centred 
-	// on the origin.  
-	//
-	// Your goal here is to fill ray.intersection with correct values
-	// should an intersection occur.  This includes intersection.point, 
-	// intersection.normal, intersection.none, intersection.t_value.   
-	//
-	// HINT: Remember to first transform the ray into object space  
-	// to simplify the intersection test.
+    /*
+     * Unit sphere centered at origin with radius 1
+     */
 
 	// convert to object space
 	Point3D eye = worldToModel * ray.origin;
@@ -193,6 +177,7 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Matr
 		ray.intersection.point = modelToWorld * sphereIntersection;
         setUVCoord(ray, sphereIntersection);
 
+        // normal for sphere is vector from center to intersection point
 		ray.intersection.normal = transNorm(worldToModel, sphereIntersection - center);
 		ray.intersection.normal.normalize();
 
@@ -204,8 +189,6 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Matr
 }
 
 void UnitSphere::setUVCoord(Ray3D &ray, Point3D& modelSpaceIPoint) {
-
-	// https://en.wikipedia.org/wiki/UV_mapping
 	double theta = acos(modelSpaceIPoint[2]);
 	double phi = atan2(modelSpaceIPoint[1], modelSpaceIPoint[0]);
 	phi = phi < 0 ? phi + M_PI_TIMES_2 : phi;   // can't do modulo with doubles
