@@ -235,7 +235,7 @@ Color Raytracer::shadeRay(Ray3D &ray, Scene &scene, LightList &light_list, int d
 #endif
         } else {
 #ifdef REFLECTION
-            col = col = col + (spec * reflectedColor);
+            col = col + (spec * reflectedColor);
 #endif
         }
 #endif

@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -pg -g -O2 -Wall
+CFLAGS = -std=c++14 -pg -g -O2 -Wall
 LDFLAGS = -pg -g
 LIBS = -lm
 
