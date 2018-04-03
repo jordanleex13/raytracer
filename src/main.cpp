@@ -195,7 +195,6 @@ void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& s
     colorfulball->scale(origin, sphereScale);
     colorfulball->translate(Vector3D(4.5, 0, 4.5));
 
-    double smallScale[3] = {1.5, 1.5, 1.5};
     double largeScale[3] = {4.0, 4.0, 4.0};
     glassSphere->scale(origin, largeScale);
     glassSphere->translate(Vector3D(4.0, 1.5, 2.0));

@@ -15,7 +15,7 @@
 #define SHADOW_INTENSITY 0.4 // set to 1.0 for default
 
 
-// #define MULTITHREADING // Toggle option for multithreading 
+#define MULTITHREADING // Toggle option for multithreading 
 
 #ifdef MULTITHREADING
 #include <omp.h>
@@ -26,21 +26,21 @@
 
 /***** FEATURES *****/
 
-#define DEPTH 3  // number of bounces before ray dies
+#define DEPTH 5  // number of bounces before ray dies
 
-// #define ANTI_ALIASING
-// #define NUM_ANTIALIASING_RAY 5
+#define ANTI_ALIASING
+#define NUM_ANTIALIASING_RAY 3
 
 // #define DOF
 // #define NUM_RAND_DOF_RAY 3
 
-// #define SHADOWING
-// #define SOFT_SHADOWS
+#define SHADOWING
+#define SOFT_SHADOWS
 
-// #define REFLECTION
-// #define GLOSSY
+#define REFLECTION
+#define GLOSSY
 
-// #define REFRACTION
+#define REFRACTION
 
 void Raytracer::traverseScene(Scene &scene, Ray3D &ray) {
     for (size_t i = 0; i < scene.size(); ++i) {
