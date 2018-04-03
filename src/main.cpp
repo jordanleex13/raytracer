@@ -141,10 +141,10 @@ void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& s
 
 
     /* Actual objects */
-    Texture textureEarth = Texture("resources/texture_earth.bmp");
-    Texture textureGranite = Texture("resources/texture_granite.bmp");
-    Texture textureIce = Texture("resources/texture_ice.bmp");
-    Texture textureRainbow = Texture("resources/texture_rainbow.bmp");
+    Texture textureEarth = Texture("../resources/texture_earth.bmp");
+    Texture textureGranite = Texture("../resources/texture_granite.bmp");
+    Texture textureIce = Texture("../resources/texture_ice.bmp");
+    Texture textureRainbow = Texture("../resources/texture_rainbow.bmp");
 
     Material earth(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 1.0);
     Material granite(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 10.0);
@@ -458,8 +458,8 @@ void scene_texture_map(Raytracer& raytracer, LightList& light_list, Scene& scene
     light_list.push_back(pLight5);
     light_list.push_back(pLight6);
 
-    Texture textureEarth = Texture("resources/texture_earth.bmp");
-    Texture textureNumGrid = Texture("resources/texture_board.bmp");
+    Texture textureEarth = Texture("../resources/texture_earth.bmp");
+    Texture textureNumGrid = Texture("../resources/texture_board.bmp");
 
     Material earth(Color(0.1, 0.1, 0.1), Color(0.9, 0.9, 0.9), Color(0.1, 0.1, 0.1), 1);
     earth.texture = &textureEarth;
@@ -695,7 +695,7 @@ void scene_wow(Raytracer& raytracer, LightList& light_list, Scene& scene, int wi
 
 
     /* Actual objects */
-    Texture textureEarth = Texture("resources/texture_earth.bmp");
+    Texture textureEarth = Texture("../resources/texture_earth.bmp");
 
     Material earth(Color(0.1, 0.1, 0.1), Color(0.9, 0.9, 0.9), Color(0.1, 0.1, 0.1), 1.0);
     earth.texture = &textureEarth;
