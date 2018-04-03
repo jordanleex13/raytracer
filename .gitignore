@@ -1,8 +1,6 @@
 *.idea
-*.o
-*.bmp
 CMakeLists.txt
 cmake-build-debug/
-raytracer
-!demos/*.bmp
-!resources/*.bmp
+src/*.o
+src/*.bmp
+src/raytracer
