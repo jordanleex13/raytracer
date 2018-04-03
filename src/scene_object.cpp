@@ -50,7 +50,8 @@ bool UnitCylinder::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Ma
 	if (time.empty()) { return false; }
 	// check if all points lie on cylinder
 	double t = -1;
-	for(auto it = time.begin(); it != time.end(); ++it) {
+	std::vector<double>::iterator it;
+	for(it = time.begin(); it != time.end(); ++it) {
 		Point3D intersection = eye + (*it) * eyeToPlane;
 		if (intersection[2] < -0.5 || intersection[2] > 0.5) { continue; }
 	    if ((float)(intersection[0]*intersection[0] + intersection[1]*intersection[1]) > 1.0) { continue; }
