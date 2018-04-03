@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
     Scene scene;
 
     // Enable exactly 1 scene
-    // scene_basic(raytracer, light_list, scene, width, height);
+     scene_basic(raytracer, light_list, scene, width, height);
     // scene_soft_shadows(raytracer, light_list, scene, width, height);
     // scene_texture_map(raytracer, light_list, scene, width, height);
     // scene_cylinder(raytracer, light_list, scene, width, height);
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     // scene_refrac(raytracer, light_list, scene, width, height);
     // scene_DOF(raytracer, light_list, scene, width, height);
     // scene_wow(raytracer, light_list, scene, width, height);
-    scene_infinite_mirror(raytracer, light_list, scene, width, height);
+//    scene_infinite_mirror(raytracer, light_list, scene, width, height);
 
     // Free memory
     for (size_t i = 0; i < scene.size(); ++i) {
@@ -617,7 +617,7 @@ void scene_basic(Raytracer& raytracer, LightList& light_list, Scene& scene, int 
     light_list.push_back(pLight);
 
     // Add a unit square into the scene with material mat.
-    SceneNode *sphere = new SceneNode(new UnitSphere(), &glossy);
+    SceneNode *sphere = new SceneNode(new UnitSphere(), &gold);
     scene.push_back(sphere);
     SceneNode *plane = new SceneNode(new UnitSquare(), &jade);
     scene.push_back(plane);
