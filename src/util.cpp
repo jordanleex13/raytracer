@@ -6,6 +6,7 @@
 
 ***********************************************************/
 
+#include <cstdlib>
 #include "util.h"
 
 Point3D::Point3D() {

@@ -8,6 +8,7 @@
 ***********************************************************/
 
 #include <cassert>
+#include <cstdlib>
 
 #include "raytracer.h"
 
@@ -42,6 +43,11 @@
 // #define GLOSSY
 //
 //#define REFRACTION
+
+double Raytracer::generateRandom(double low=0.0, double high=1.0) {
+    double f = (double)rand() / RAND_MAX;
+    return low + f * (high - low);
+}
 
 void Raytracer::traverseScene(Scene &scene, Ray3D &ray) {
     for (size_t i = 0; i < scene.size(); ++i) {

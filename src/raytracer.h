@@ -44,9 +44,6 @@ private:
 	// compute refracted rays from the given ray
 	bool getRefractedRay(Ray3D& ray, Ray3D& refractedRay, double& T);
 
-	double generateRandom(double low=0.0, double high=1.0) {
-		double f = (double)rand() / RAND_MAX;
-		return low + f * (high - low);
-	}
+	double generateRandom(double, double);
 
 };
