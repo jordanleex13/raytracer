@@ -4,5 +4,5 @@
 CMakeLists.txt
 cmake-build-debug/
 raytracer
-!output/*.bmp
+!demos/*.bmp
 !resources/*.bmp
