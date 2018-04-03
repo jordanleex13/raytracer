@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     Scene scene;
 
     // Everything off
-     // scene_basic(raytracer, light_list, scene, width, height);
+      scene_basic(raytracer, light_list, scene, width, height);
 
     // SHADOWING, SOFT_SHADOWS, ANTI_ALIASING
 //     scene_soft_shadows(raytracer, light_list, scene, width, height);
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 //     scene_texture_map(raytracer, light_list, scene, width, height);
 
     // Everything off
-   scene_cylinder(raytracer, light_list, scene, width, height);
+//   scene_cylinder(raytracer, light_list, scene, width, height);
 
     // ANTI_ALIASING
 //     scene_anti_aliasing(raytracer, light_list, scene, width, height);
@@ -233,8 +233,10 @@ void scene_infinite_mirror(Raytracer &raytracer, LightList &light_list, Scene &s
                        focalRanges[i]);
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
-        image1.flushPixelBuffer(
-                "view_infinite_mirror" + std::to_string(i) + ".bmp"); //save rendered image to file
+
+        char image_name[50];
+        std::sprintf(image_name, "view_infinite_mirror%d.bmp", i);
+        image1.flushPixelBuffer(image_name); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 }
@@ -270,7 +272,10 @@ void scene_glossy(Raytracer &raytracer, LightList &light_list, Scene &scene, int
         Camera camera1(cameraPos, origin - cameraPos, Vector3D(0, 0, 1), 60.0);
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
-        image1.flushPixelBuffer("glossy" + std::to_string(i) + ".bmp"); //save rendered image to file
+
+        char image_name[50];
+        std::sprintf(image_name, "glossy%d.bmp", i);
+        image1.flushPixelBuffer(image_name); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 
@@ -309,8 +314,9 @@ void scene_anti_aliasing(Raytracer &raytracer, LightList &light_list, Scene &sce
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
 
-        image1.flushPixelBuffer(
-                "anti_aliasing" + std::to_string(i) + ".bmp"); //save rendered image to file
+        char image_name[50];
+        std::sprintf(image_name, "anti_aliasing%d.bmp", i);
+        image1.flushPixelBuffer(image_name); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 
@@ -362,7 +368,9 @@ void scene_DOF(Raytracer &raytracer, LightList &light_list, Scene &scene, int wi
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
 
-        image1.flushPixelBuffer("DOF_view" + std::to_string(i) + ".bmp"); //save rendered image to file
+        char image_name[50];
+        std::sprintf(image_name, "DOF_view%d.bmp", i);
+        image1.flushPixelBuffer(image_name); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 
@@ -450,7 +458,9 @@ void scene_refrac(Raytracer &raytracer, LightList &light_list, Scene &scene, int
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
 
-        image1.flushPixelBuffer("refrac_view" + std::to_string(i) + ".bmp"); //save rendered image to file
+        char image_name[50];
+        std::sprintf(image_name, "refrac_view%d.bmp", i);
+        image1.flushPixelBuffer(image_name); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 
@@ -508,7 +518,9 @@ void scene_texture_map(Raytracer &raytracer, LightList &light_list, Scene &scene
         Camera camera1(cameraPos, origin - cameraPos, Vector3D(0, 0, 1), 60.0);
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
-        image1.flushPixelBuffer("view_tm_" + std::to_string(i) + ".bmp"); //save rendered image to file
+        char image_name[50];
+        std::sprintf(image_name, "view_tm_%d.bmp", i);
+        image1.flushPixelBuffer(image_name); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 }
@@ -556,7 +568,9 @@ void scene_spheres(Raytracer &raytracer, LightList &light_list, Scene &scene, in
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
 
-        image1.flushPixelBuffer("sphere_view" + std::to_string(i) + ".bmp"); //save rendered image to file
+        char image_name[50];
+        std::sprintf(image_name, "sphere_view%d.bmp", i);
+        image1.flushPixelBuffer(image_name); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 }
@@ -590,8 +604,10 @@ void scene_soft_shadows(Raytracer &raytracer, LightList &light_list, Scene &scen
         Camera camera1(cameraPos, origin - cameraPos, Vector3D(0, 0, 1), 60.0);
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
-        image1.flushPixelBuffer("view_ss_" + std::to_string(i) + std::string(".bmp")); //save rendered image to file
-       // image1.flushPixelBuffer("view_no_ss_" /*+ std::to_string(i)*/ + std::string(".bmp")); //save rendered image to file
+
+        char image_name[50];
+        std::sprintf(image_name, "view_ss%d.bmp", i);
+        image1.flushPixelBuffer(image_name); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 
@@ -622,12 +638,12 @@ void scene_cylinder(Raytracer &raytracer, LightList &light_list, Scene &scene, i
     Camera camera1(Point3D(0, 0, 1), Vector3D(0, 0, -1), Vector3D(0, 1, 0), 60.0);
     Image image1(width, height);
     raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
-    image1.flushPixelBuffer("view1.bmp"); //save rendered image to file
+    image1.flushPixelBuffer("view_cylinder1.bmp"); //save rendered image to file
 
     Camera camera2(Point3D(4, 2, 1), Vector3D(-4, -2, -6), Vector3D(0, 1, 0), 60.0);
     Image image2(width, height);
     raytracer.render(camera2, scene, light_list, image2);
-    image2.flushPixelBuffer("view2.bmp");
+    image2.flushPixelBuffer("view_cylinder2.bmp");
 
 }
 
@@ -760,7 +776,9 @@ void scene_box(Raytracer &raytracer, LightList &light_list, Scene &scene, int wi
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
 
-        image1.flushPixelBuffer("view_box_" + std::to_string(i) + ".bmp"); //save rendered image to file
+        char image_name[50];
+        std::sprintf(image_name, "view_box_%d.bmp", i);
+        image1.flushPixelBuffer(image_name); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 }

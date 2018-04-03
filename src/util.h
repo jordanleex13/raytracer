@@ -153,7 +153,7 @@ struct Material {
 		this->Ka = 1.0;
 		this->Kd = 1.0;
 		this->Ks = 1.0;
-		this->texture = nullptr;
+		this->texture = NULL;
 		this->n_refr = 0.0;
 		this->transmittance = 0.0;
 	}
@@ -166,7 +166,7 @@ struct Material {
 		this->Ka = 1.0;
 		this->Kd = 1.0;
 		this->Ks = 0.9;
-		this->texture = nullptr;
+		this->texture = NULL;
 		this->n_refr = n;
 		this->transmittance = t;
 	}

@@ -394,7 +394,7 @@ std::ostream& operator <<(std::ostream& os, const Matrix4x4& M) {
  * @return 		the color of the texture map corresponding to the uvCoordinate
  */
 Color Material::getTextureColor(const Ray3D& ray) {
-	if (texture == nullptr) {
+	if (texture == NULL) {
 		return Color(1.0, 1.0, 1.0);	// just return all 1's if no texture
 	}
 	return texture->getColor(ray.intersection.uvCoord);
