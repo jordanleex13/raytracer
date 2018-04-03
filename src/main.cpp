@@ -11,19 +11,28 @@
 #define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
 
 // This is the same for part 1
-void scene_basic(Raytracer&, LightList&, Scene&, int, int);
+void scene_basic(Raytracer &, LightList &, Scene &, int, int);
 
 // These scenes showcase features
-void scene_cylinder(Raytracer&, LightList&, Scene&, int, int);
-void scene_spheres(Raytracer&, LightList&, Scene&, int, int);
-void scene_glossy(Raytracer&, LightList&, Scene&, int, int);
-void scene_anti_aliasing(Raytracer&, LightList&, Scene&, int, int);
-void scene_refrac(Raytracer&, LightList&, Scene&, int, int);
-void scene_texture_map(Raytracer&, LightList&, Scene&, int, int);
-void scene_soft_shadows(Raytracer&, LightList&, Scene&, int, int);
-void scene_DOF(Raytracer&, LightList&, Scene&, int, int);
-void scene_wow(Raytracer&, LightList&, Scene&, int, int);
-void scene_infinite_mirror(Raytracer&, LightList&, Scene&, int, int);
+void scene_cylinder(Raytracer &, LightList &, Scene &, int, int);
+
+void scene_spheres(Raytracer &, LightList &, Scene &, int, int);
+
+void scene_glossy(Raytracer &, LightList &, Scene &, int, int);
+
+void scene_anti_aliasing(Raytracer &, LightList &, Scene &, int, int);
+
+void scene_refrac(Raytracer &, LightList &, Scene &, int, int);
+
+void scene_texture_map(Raytracer &, LightList &, Scene &, int, int);
+
+void scene_soft_shadows(Raytracer &, LightList &, Scene &, int, int);
+
+void scene_DOF(Raytracer &, LightList &, Scene &, int, int);
+
+void scene_box(Raytracer &, LightList &, Scene &, int, int);
+
+void scene_infinite_mirror(Raytracer &, LightList &, Scene &, int, int);
 
 Point3D origin(0, 0, 0);
 
@@ -42,8 +51,6 @@ Material slate(darkgrey, darkgrey, Color(0.1, 0.1, 0.1), 1.0);
 Material blue(Color(0.0, 0.0, 0.1), Color(0.4, 0.4, 0.4), Color(0.05, 0.05, 0.6), 1);
 
 Material mirror(Color(0.001, 0.001, 0.001), Color(0.0, 0.0, 0.0), Color(0.999, 0.999, 0.999), 10000.0);
-Material glossy(Color(0.01, 0.01, 0.01), Color(0.1, 0.1, 0.1), Color(0.8, 0.8, 0.8), 1000.0);
-
 
 
 int main(int argc, char *argv[]) {
@@ -61,17 +68,35 @@ int main(int argc, char *argv[]) {
     LightList light_list;
     Scene scene;
 
-    // Enable exactly 1 scene
-     scene_basic(raytracer, light_list, scene, width, height);
-    // scene_soft_shadows(raytracer, light_list, scene, width, height);
-    // scene_texture_map(raytracer, light_list, scene, width, height);
-    // scene_cylinder(raytracer, light_list, scene, width, height);
-    // scene_anti_aliasing(raytracer, light_list, scene, width, height);
-    // scene_spheres(raytracer, light_list, scene, width, height);
-    // scene_glossy(raytracer, light_list, scene, width, height);
-    // scene_refrac(raytracer, light_list, scene, width, height);
-    // scene_DOF(raytracer, light_list, scene, width, height);
-    // scene_wow(raytracer, light_list, scene, width, height);
+    // Everything off
+//     scene_basic(raytracer, light_list, scene, width, height);
+
+    // SHADOWING, SOFT_SHADOWS, ANTI_ALIASING
+//     scene_soft_shadows(raytracer, light_list, scene, width, height);
+
+    // Everything off
+//     scene_texture_map(raytracer, light_list, scene, width, height);
+
+    // Everything off
+//    scene_cylinder(raytracer, light_list, scene, width, height);
+
+    // ANTI_ALIASING
+//     scene_anti_aliasing(raytracer, light_list, scene, width, height);
+
+    // REFLECTION, GLOSSY, DEPTH=3, (ANTI_ALIASING)
+//    scene_glossy(raytracer, light_list, scene, width, height);
+
+    // REFRACTION, SHADOWING, (ANTI_ALIASING)
+//     scene_refrac(raytracer, light_list, scene, width, height);
+
+    // DOF, NUM_DOF_RAY=3, SHADOWING
+//     scene_DOF(raytracer, light_list, scene, width, height);
+
+    // ANTI_ALIASING, DEPTH=3, SHADOWING, REFLECTION
+//    scene_spheres(raytracer, light_list, scene, width, height);
+
+    // Try all?
+    scene_box(raytracer, light_list, scene, width, height);
 //    scene_infinite_mirror(raytracer, light_list, scene, width, height);
 
     // Free memory
@@ -87,12 +112,10 @@ int main(int argc, char *argv[]) {
 }
 
 
-void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& scene, int width, int height) {
+void scene_infinite_mirror(Raytracer &raytracer, LightList &light_list, Scene &scene, int width, int height) {
     std::cout << "Rendering infinite mirror scene" << std::endl;
     double fov = 60.0;
     double aperture = 0.6;
-    double focalLength = 6.0;
-    double focalRange = 4.0;
 
     PointLight *pLight1 = new PointLight(Point3D(25, -10, 10), Color(0.9, 0.9, 0.9));
     light_list.push_back(pLight1);
@@ -125,7 +148,7 @@ void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& s
 
     backWall->translate(Vector3D(0, 0, 20));
     backWall->rotate('y', 90);
-    backWall->scale(origin, wallScale);    
+    backWall->scale(origin, wallScale);
 
     frontWall->translate(Vector3D(55, 0, 20));
     frontWall->rotate('y', -90);
@@ -141,19 +164,19 @@ void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& s
 
 
     /* Actual objects */
-    Texture textureEarth = Texture("../resources/texture_earth.bmp");
-    Texture textureGranite = Texture("../resources/texture_granite.bmp");
-    Texture textureIce = Texture("../resources/texture_ice.bmp");
-    Texture textureRainbow = Texture("../resources/texture_rainbow.bmp");
+    Texture* textureEarth = new Texture("../resources/texture_earth.bmp");
+    Texture* textureGranite = new Texture("../resources/texture_granite.bmp");
+    Texture* textureIce = new Texture("../resources/texture_ice.bmp");
+    Texture* textureRainbow = new Texture("../resources/texture_rainbow.bmp");
 
     Material earth(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 1.0);
     Material granite(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 10.0);
     Material ice(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 10.0);
     Material rainbow(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 10.0);
-    earth.texture = &textureEarth;
-    granite.texture = &textureGranite;
-    ice.texture = &textureIce;
-    rainbow.texture = &textureRainbow;
+    earth.texture = textureEarth;
+    granite.texture = textureGranite;
+    ice.texture = textureIce;
+    rainbow.texture = textureRainbow;
 
     Material transparent(Color(0.2, 0.2, 0.2), Color(1.0, 1.0, 1.0), Color(0.5, 0.5, 0.5), 1.0, 1.33, 0.95);
 
@@ -200,31 +223,32 @@ void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& s
     glassSphere->translate(Vector3D(4.0, 1.5, 2.0));
 
     Point3D cameraPositions[3] = {Point3D(20, -10, 10), Point3D(35, 0, 10), Point3D(55, 4, 20)};
-    Point3D viewDir[3] = {Point3D(0,0,-4), Point3D(0,0,8), Point3D(0,0,8)};
-    double focalLengths[3] = {2, 6, 12};
-    double focalRanges[3] = {4, 4, 4};
+    Point3D viewDir[3] = {Point3D(0, 0, -4), Point3D(0, 0, 8), Point3D(0, 0, 8)};
+    double focalLengths[3] = {2.0, 6.0, 12.0};
+    double focalRanges[3] = {4.0, 4.0, 4.0};
     for (int i = 0; i < NELEMS(cameraPositions); i++) {
         Point3D cameraPos = cameraPositions[i];
         // look slightly above floor
-        Camera camera1(cameraPos, viewDir[i] - cameraPos, Vector3D(0, 0, 1), fov, aperture, focalLengths[i], focalRanges[i]);
+        Camera camera1(cameraPos, viewDir[i] - cameraPos, Vector3D(0, 0, 1), fov, aperture, focalLengths[i],
+                       focalRanges[i]);
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
-
-        image1.flushPixelBuffer("view_infinite_mirrior" + std::to_string(i) + std::string(".bmp")); //save rendered image to file
+        image1.flushPixelBuffer(
+                "view_infinite_mirrior" + std::to_string(i) + std::string(".bmp")); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 }
 
 
-void scene_glossy(Raytracer& raytracer, LightList& light_list, Scene& scene, int width, int height) {
+void scene_glossy(Raytracer &raytracer, LightList &light_list, Scene &scene, int width, int height) {
     std::cout << "Rendering glossy scene" << std::endl;
 
     PointLight *pLight = new PointLight(Point3D(20, 20, 20), Color(0.9, 0.9, 0.9));
     light_list.push_back(pLight);
 
-    SceneNode *sphere = new SceneNode(new UnitSphere(), &glossy);
+    SceneNode *sphere = new SceneNode(new UnitSphere(), &gold);
     scene.push_back(sphere);
-    SceneNode *sphere2 = new SceneNode(new UnitSphere(), &blue);
+    SceneNode *sphere2 = new SceneNode(new UnitSphere(), &jade);
     scene.push_back(sphere2);
     SceneNode *floor = new SceneNode(new UnitSquare(), &slate);
     scene.push_back(floor);
@@ -253,7 +277,7 @@ void scene_glossy(Raytracer& raytracer, LightList& light_list, Scene& scene, int
 }
 
 
-void scene_anti_aliasing(Raytracer& raytracer, LightList& light_list, Scene& scene, int width, int height) {
+void scene_anti_aliasing(Raytracer &raytracer, LightList &light_list, Scene &scene, int width, int height) {
     std::cout << "Rendering anti aliasing scene" << std::endl;
 
     PointLight *pLight = new PointLight(Point3D(20, 20, 20), Color(0.9, 0.9, 0.9));
@@ -285,13 +309,14 @@ void scene_anti_aliasing(Raytracer& raytracer, LightList& light_list, Scene& sce
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
 
-        image1.flushPixelBuffer("anti_aliasing" + std::to_string(i) + std::string(".bmp")); //save rendered image to file
+        image1.flushPixelBuffer(
+                "anti_aliasing" + std::to_string(i) + std::string(".bmp")); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 
 }
 
-void scene_DOF(Raytracer& raytracer, LightList& light_list, Scene& scene, int width, int height) {
+void scene_DOF(Raytracer &raytracer, LightList &light_list, Scene &scene, int width, int height) {
     std::cout << "Rendering depth of field scene" << std::endl;
     double fov = 60.0;
     double aperture = 0.6;
@@ -343,7 +368,7 @@ void scene_DOF(Raytracer& raytracer, LightList& light_list, Scene& scene, int wi
 
 }
 
-void scene_refrac(Raytracer& raytracer, LightList& light_list, Scene& scene, int width, int height) {
+void scene_refrac(Raytracer &raytracer, LightList &light_list, Scene &scene, int width, int height) {
     std::cout << "Rendering refraction scene" << std::endl;
 
     PointLight *pLight = new PointLight(Point3D(20, 20, 20), Color(0.9, 0.9, 0.9));
@@ -431,7 +456,7 @@ void scene_refrac(Raytracer& raytracer, LightList& light_list, Scene& scene, int
 
 }
 
-void scene_texture_map(Raytracer& raytracer, LightList& light_list, Scene& scene, int width, int height) {
+void scene_texture_map(Raytracer &raytracer, LightList &light_list, Scene &scene, int width, int height) {
     std::cout << "Rendering texture map scene" << std::endl;
     Point3D north(Point3D(0, 6, 2));
     Point3D east(Point3D(6, 0, 2));
@@ -488,7 +513,7 @@ void scene_texture_map(Raytracer& raytracer, LightList& light_list, Scene& scene
     }
 }
 
-void scene_spheres(Raytracer& raytracer, LightList& light_list, Scene& scene, int width, int height) {
+void scene_spheres(Raytracer &raytracer, LightList &light_list, Scene &scene, int width, int height) {
     std::cout << "Rendering spheres scene" << std::endl;
 
     PointLight *pLight = new PointLight(Point3D(10, 10, 10), Color(0.9, 0.9, 0.9));
@@ -537,7 +562,7 @@ void scene_spheres(Raytracer& raytracer, LightList& light_list, Scene& scene, in
 }
 
 
-void scene_soft_shadows(Raytracer& raytracer, LightList& light_list, Scene& scene, int width, int height) {
+void scene_soft_shadows(Raytracer &raytracer, LightList &light_list, Scene &scene, int width, int height) {
     std::cout << "Rendering soft shadows" << std::endl;
 
     PointLight *pLight = new PointLight(Point3D(0, 0, 20), Color(0.9, 0.9, 0.9));
@@ -567,13 +592,13 @@ void scene_soft_shadows(Raytracer& raytracer, LightList& light_list, Scene& scen
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
 
         image1.flushPixelBuffer("view_ss_" + std::to_string(i) + std::string(".bmp")); //save rendered image to file
-       image1.flushPixelBuffer("view_no_ss_" /*+ std::to_string(i)*/ + std::string(".bmp")); //save rendered image to file
+//        image1.flushPixelBuffer("view_no_ss_" /*+ std::to_string(i)*/ + std::string(".bmp")); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 
 }
 
-void scene_cylinder(Raytracer& raytracer, LightList& light_list, Scene& scene, int width, int height) {
+void scene_cylinder(Raytracer &raytracer, LightList &light_list, Scene &scene, int width, int height) {
 
     std::cout << "Rendering cylinder scene" << std::endl;
 
@@ -608,7 +633,7 @@ void scene_cylinder(Raytracer& raytracer, LightList& light_list, Scene& scene, i
 }
 
 
-void scene_basic(Raytracer& raytracer, LightList& light_list, Scene& scene, int width, int height) {
+void scene_basic(Raytracer &raytracer, LightList &light_list, Scene &scene, int width, int height) {
     std::cout << "Rendering basic scene" << std::endl;
 
     // Defines a point light source.
@@ -646,8 +671,8 @@ void scene_basic(Raytracer& raytracer, LightList& light_list, Scene& scene, int 
 }
 
 
-void scene_wow(Raytracer& raytracer, LightList& light_list, Scene& scene, int width, int height) {
-    std::cout << "Rendering wow scene" << std::endl;
+void scene_box(Raytracer &raytracer, LightList &light_list, Scene &scene, int width, int height) {
+    std::cout << "Rendering box scene" << std::endl;
 
     PointLight *pLight1 = new PointLight(Point3D(25, -10, 10), Color(0.9, 0.9, 0.9));
     light_list.push_back(pLight1);
@@ -694,10 +719,10 @@ void scene_wow(Raytracer& raytracer, LightList& light_list, Scene& scene, int wi
 
 
     /* Actual objects */
-    Texture textureEarth = Texture("../resources/texture_earth.bmp");
+    Texture* textureEarth = new Texture("../resources/texture_earth.bmp");
 
     Material earth(Color(0.1, 0.1, 0.1), Color(0.9, 0.9, 0.9), Color(0.1, 0.1, 0.1), 1.0);
-    earth.texture = &textureEarth;
+    earth.texture = textureEarth;
     Material mirror(Color(0.001, 0.001, 0.001), Color(0.0, 0.0, 0.0), Color(0.999, 0.999, 0.999), 10000.0);
     Material transparent(Color(0.2, 0.2, 0.2), Color(1.0, 1.0, 1.0), Color(0.5, 0.5, 0.5), 1.0, 1.33, 0.9);
 
@@ -736,7 +761,7 @@ void scene_wow(Raytracer& raytracer, LightList& light_list, Scene& scene, int wi
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
 
-        image1.flushPixelBuffer("view_wow_" + std::to_string(i) + std::string(".bmp")); //save rendered image to file
+        image1.flushPixelBuffer("view_box_" + std::to_string(i) + std::string(".bmp")); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 }

@@ -12,10 +12,10 @@
 #include "raytracer.h"
 
 #define EPSILON 0.0001
-#define SHADOW_INTENSITY 0.4 // set to 1.0 for default
+#define SHADOW_INTENSITY 1.0 // set to 1.0 for default
 
 
-#define MULTITHREADING // Toggle option for multithreading 
+//#define MULTITHREADING // Toggle option for multithreading
 
 #ifdef MULTITHREADING
 #include <omp.h>
@@ -26,21 +26,21 @@
 
 /***** FEATURES *****/
 
-#define DEPTH 5  // number of bounces before ray dies
+#define DEPTH 3 // number of bounces before ray dies
 
 #define ANTI_ALIASING
 #define NUM_ANTIALIASING_RAY 3
 
 // #define DOF
 // #define NUM_RAND_DOF_RAY 3
-
+//
 #define SHADOWING
-#define SOFT_SHADOWS
-
+//#define SOFT_SHADOWS
+//
 #define REFLECTION
-#define GLOSSY
-
-#define REFRACTION
+//#define GLOSSY
+//
+//#define REFRACTION
 
 void Raytracer::traverseScene(Scene &scene, Ray3D &ray) {
     for (size_t i = 0; i < scene.size(); ++i) {
@@ -130,11 +130,10 @@ Ray3D Raytracer::getReflectedRay(Ray3D &ray) {
     v.normalize();
 
     // Predict roughness value using alpha (specular exponent)
-    // when alpha -> infinity, it's shiny, not rough
-    // when roughness -> 0, theta phi -> 0, thus xy -> 0, z->1
-    double roughness = 2 * M_PI * (1.0 / (ray.intersection.mat->specular_exp + 1.0));
-    double theta = roughness * generateRandom();
-    double phi = roughness * generateRandom();
+    // http://www.raytracegroundup.com/downloads/Chapter25.pdf
+    // find theta using formula. generate a random density around hemisphere
+    double theta = acos(pow(generateRandom(), 1.0 / (ray.intersection.mat->specular_exp)));
+    double phi = M_PI_TIMES_2 * generateRandom();
     double x = sin(theta) * cos(phi);
     double y = sin(theta) * sin(phi);
     double z = cos(theta);
