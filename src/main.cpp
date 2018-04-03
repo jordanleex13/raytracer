@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     Scene scene;
 
     // Everything off
-     scene_basic(raytracer, light_list, scene, width, height);
+     // scene_basic(raytracer, light_list, scene, width, height);
 
     // SHADOWING, SOFT_SHADOWS, ANTI_ALIASING
 //     scene_soft_shadows(raytracer, light_list, scene, width, height);
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 //     scene_texture_map(raytracer, light_list, scene, width, height);
 
     // Everything off
-//    scene_cylinder(raytracer, light_list, scene, width, height);
+   scene_cylinder(raytracer, light_list, scene, width, height);
 
     // ANTI_ALIASING
 //     scene_anti_aliasing(raytracer, light_list, scene, width, height);
@@ -123,7 +123,7 @@ void scene_infinite_mirror(Raytracer &raytracer, LightList &light_list, Scene &s
     Color dim(0.1, 0.1, 0.1);
 
     Material babyblue(Color(0.05, 0.15, 0.2), Color(0, 0.4, 0.6), dim, 1.0);
-//    Material mirror(Color(0.001, 0.001, 0.001), Color(0.0, 0.0, 0.0), Color(0.999, 0.999, 0.999), 10000.0);
+   // Material mirror(Color(0.001, 0.001, 0.001), Color(0.0, 0.0, 0.0), Color(0.999, 0.999, 0.999), 10000.0);
 
     /* Walls */
     SceneNode *floor = new SceneNode(new UnitSquare(), &babyblue);
@@ -590,9 +590,8 @@ void scene_soft_shadows(Raytracer &raytracer, LightList &light_list, Scene &scen
         Camera camera1(cameraPos, origin - cameraPos, Vector3D(0, 0, 1), 60.0);
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
-
-        image1.flushPixelBuffer("view_ss_" + std::to_string(i) + ".bmp"); //save rendered image to file
-//        image1.flushPixelBuffer("view_no_ss_" /*+ std::to_string(i)*/ + ".bmp"); //save rendered image to file
+        image1.flushPixelBuffer("view_ss_" + std::to_string(i) + std::string(".bmp")); //save rendered image to file
+       // image1.flushPixelBuffer("view_no_ss_" /*+ std::to_string(i)*/ + std::string(".bmp")); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 
@@ -605,17 +604,17 @@ void scene_cylinder(Raytracer &raytracer, LightList &light_list, Scene &scene, i
     PointLight *pLight = new PointLight(Point3D(0, 0, 5), Color(0.9, 0.9, 0.9));
     light_list.push_back(pLight);
 
-    SceneNode *cylinder = new SceneNode(new UnitCylinder(), &gold);
+    SceneNode *cylinder = new SceneNode(new UnitCylinder(), &diffuseY);
     scene.push_back(cylinder);
-    SceneNode *plane = new SceneNode(new UnitSquare(), &jade);
+    SceneNode *plane = new SceneNode(new UnitSquare(), &slate);
     scene.push_back(plane);
 
-    double factor1[3] = {1.0, 1.0, 1.0};
+    double factor1[3] = {1.0, 1.0, 2.0};
     cylinder->translate(Vector3D(0, 0, -5));
     cylinder->rotate('x', 90);
     cylinder->scale(origin, factor1);
 
-    double factor2[3] = {12.0, 12.0, 12.0};
+    double factor2[3] = {100.0, 100.0, 100.0};
     plane->translate(Vector3D(0, 0, -15));
     plane->rotate('z', 45);
     plane->scale(origin, factor2);

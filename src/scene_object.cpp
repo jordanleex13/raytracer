@@ -23,7 +23,7 @@ bool UnitCylinder::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Ma
 	Vector3D centerToEye = eye - center;
 	// intersecting with an infinite long cylinder
 	double a = eyeToPlane[0]*eyeToPlane[0] + eyeToPlane[1]*eyeToPlane[1];
-	double b = 2 * (centerToEye[0]*eyeToPlane[0] + centerToEye[1]*eyeToPlane[1]);
+	double b = 2*(centerToEye[0]*eyeToPlane[0] + centerToEye[1]*eyeToPlane[1]);
 	double c = centerToEye[0]*centerToEye[0] + centerToEye[1]*centerToEye[1] - 1; // 1 is R^2
 
 	std::vector<double> time;
@@ -34,12 +34,6 @@ bool UnitCylinder::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Ma
 		if (t1 >= 0) { time.push_back(t1); }
 		if (t2 >= 0) { time.push_back(t2); }
 	}
-
-	// std::cout << "intersection time: ";
-	// for(auto it = time.begin(); it != time.end(); ++it) {
-	// 	std::cout <<(*it) << " ";
-	// }
-	// std::cout << std::endl;
 
 	// intersecting with top and bottom planes
 	Vector3D N = Vector3D(0.0, 0.0, 1.0);
@@ -59,7 +53,7 @@ bool UnitCylinder::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Ma
 	for(auto it = time.begin(); it != time.end(); ++it) {
 		Point3D intersection = eye + (*it) * eyeToPlane;
 		if (intersection[2] < -0.5 || intersection[2] > 0.5) { continue; }
-	    if (intersection[0]*intersection[0] + intersection[1]*intersection[1] > 1) { continue; }
+	    if ((float)(intersection[0]*intersection[0] + intersection[1]*intersection[1]) > 1.0) { continue; }
 	    if (t == -1) { t = (*it); }
 	    else { t = std::min(t, (*it)); }
 	}
@@ -68,8 +62,8 @@ bool UnitCylinder::intersect(Ray3D& ray, const Matrix4x4& worldToModel, const Ma
 	// use line equation to get intersection point
 	Point3D intersection = eye + t * eyeToPlane;
 	Vector3D normal;
-	if (intersection[3]==0.5){normal=transNorm(worldToModel, Vector3D(0,0,1));}
-	if (intersection[3]==(-0.5)){normal=transNorm(worldToModel, Vector3D(0,0,-1));}
+	if (intersection[2]==0.5){normal=transNorm(worldToModel, Vector3D(0,0,1));}
+	if (intersection[2]==(-0.5)){normal=transNorm(worldToModel, Vector3D(0,0,-1));}
 	else {normal=transNorm(worldToModel, Vector3D(intersection[0], intersection[1], 0));}
 
 	// check if already a valid intersection, update if this one is closer

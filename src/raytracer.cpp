@@ -28,17 +28,17 @@
 
 #define DEPTH 3 // number of bounces before ray dies
 
-//#define ANTI_ALIASING
-//#define NUM_ANTIALIASING_RAY 3
-//
+// #define ANTI_ALIASING
+// #define NUM_ANTIALIASING_RAY 3
+
 //#define DOF
 //#define NUM_RAND_DOF_RAY 3
 //
-//#define SHADOWING
-//#define SOFT_SHADOWS
+// #define SHADOWING
+// #define SOFT_SHADOWS
 //
-//#define REFLECTION
-//#define GLOSSY
+// #define REFLECTION
+// #define GLOSSY
 //
 //#define REFRACTION
 
