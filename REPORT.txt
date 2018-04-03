@@ -1,6 +1,6 @@
 File structure:
 - ./src: all the source code 
-- ./output: images that shows each feature
+- ./demos: images that shows each feature
 - ./REPORT.txt: an explanation of this project
 - ./CHECKLIST.txt: for grading purpose only
 
