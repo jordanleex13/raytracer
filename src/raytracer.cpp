@@ -28,6 +28,7 @@
 
 #define DEPTH 3 // number of bounces before ray dies
 
+/* turn on anti-aliasing will automatically turn off depth of field */
 // #define ANTI_ALIASING
 // #define NUM_ANTIALIASING_RAY 3
 
@@ -321,29 +322,7 @@ void Raytracer::render(Camera &camera, Scene &scene, LightList &light_list, Imag
                     // convert ray to world space
                     ray.origin = viewToWorld * ray.origin;
                     ray.dir = viewToWorld * ray.dir;
-#ifdef DOF
-                    Point3D focal = ray.origin + camera.focalLength*ray.dir;
-                    for(int a = 0; a < NUM_RAND_DOF_RAY; a++){
-                        for(int b = 0; b < NUM_RAND_DOF_RAY; b++){
-                            rand_on_lens[0] = origin[0] + camera.aperture/NUM_RAND_DOF_RAY*(a+0.5);
-                            rand_on_lens[1] = origin[1] + camera.aperture/NUM_RAND_DOF_RAY*(b+0.5);
 
-                            // create ray in view space (camera space)
-                            Ray3D ray;
-                            ray.origin = rand_on_lens;
-                            ray.dir = focal - ray.origin;
-
-                            // convert ray to world space
-                            ray.origin = viewToWorld * ray.origin;
-                            ray.dir = viewToWorld * ray.dir;
-
-                            Color subcol = shadeRay(ray, scene, light_list, DEPTH);
-                            col[0] += subcol[0]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;
-                            col[1] += subcol[1]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;
-                            col[2] += subcol[2]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;
-                        }
-                    }
-#else
                     // after converting the camera position and ray origin should be same
                     assert(ray.origin[0] == camera.eye[0] && ray.origin[1] == camera.eye[1] &&
                            ray.origin[2] == camera.eye[2]);
@@ -352,7 +331,6 @@ void Raytracer::render(Camera &camera, Scene &scene, LightList &light_list, Imag
                     col[0] += subcol[0] / NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
                     col[1] += subcol[1] / NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
                     col[2] += subcol[2] / NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
-#endif 
                 }
             }
 
