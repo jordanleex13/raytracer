@@ -5,5 +5,5 @@ cmake-build-debug/
 src/*.o
 src/*.bmp
 src/raytracer
-*.bmp
 !demos/*.bmp
+*.bmp
