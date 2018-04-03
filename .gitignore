@@ -1,4 +1,5 @@
 *.idea
+*.metadata
 CMakeLists.txt
 cmake-build-debug/
 src/*.o
