@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     Scene scene;
 
     // Everything off
-//     scene_basic(raytracer, light_list, scene, width, height);
+     scene_basic(raytracer, light_list, scene, width, height);
 
     // SHADOWING, SOFT_SHADOWS, ANTI_ALIASING
 //     scene_soft_shadows(raytracer, light_list, scene, width, height);
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 //    scene_spheres(raytracer, light_list, scene, width, height);
 
     // Try all?
-    scene_box(raytracer, light_list, scene, width, height);
+//    scene_box(raytracer, light_list, scene, width, height);
 //    scene_infinite_mirror(raytracer, light_list, scene, width, height);
 
     // Free memory
@@ -123,7 +123,7 @@ void scene_infinite_mirror(Raytracer &raytracer, LightList &light_list, Scene &s
     Color dim(0.1, 0.1, 0.1);
 
     Material babyblue(Color(0.05, 0.15, 0.2), Color(0, 0.4, 0.6), dim, 1.0);
-    Material mirror(Color(0.001, 0.001, 0.001), Color(0.0, 0.0, 0.0), Color(0.999, 0.999, 0.999), 10000.0);
+//    Material mirror(Color(0.001, 0.001, 0.001), Color(0.0, 0.0, 0.0), Color(0.999, 0.999, 0.999), 10000.0);
 
     /* Walls */
     SceneNode *floor = new SceneNode(new UnitSquare(), &babyblue);
@@ -234,7 +234,7 @@ void scene_infinite_mirror(Raytracer &raytracer, LightList &light_list, Scene &s
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
         image1.flushPixelBuffer(
-                "view_infinite_mirrior" + std::to_string(i) + std::string(".bmp")); //save rendered image to file
+                "view_infinite_mirror" + std::to_string(i) + std::string(".bmp")); //save rendered image to file
         std::cout << "Finished " << i << std::endl;
     }
 }

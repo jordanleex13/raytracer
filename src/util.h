@@ -145,16 +145,31 @@ private:
 	unsigned char* barray;
 };
 struct Material {
-	Material(Color ambient, Color diffuse, Color specular, double exp) :
-		ambient(ambient), diffuse(diffuse), specular(specular),
-		specular_exp(exp), Ka(1.0), Kd(1.0), Ks(1.0),
-		texture(nullptr),
-		n_refr(0.0), transmittance(0.0) {}
+	Material(Color ambient, Color diffuse, Color specular, double exp) {
+		this->ambient = ambient;
+		this->diffuse = diffuse;
+		this->specular = specular;
+		this->specular_exp = exp;
+		this->Ka = 1.0;
+		this->Kd = 1.0;
+		this->Ks = 1.0;
+		this->texture = nullptr;
+		this->n_refr = 0.0;
+		this->transmittance = 0.0;
+	}
 
-	Material(Color ambient, Color diffuse, Color specular, double exp, double n, double t) :
-		ambient(ambient), diffuse(diffuse), specular(specular), 
-		specular_exp(exp),  Ka(1.0), Kd(0.1), Ks(0.9),
-		n_refr(n), transmittance(t) {}
+	Material(Color ambient, Color diffuse, Color specular, double exp, double n, double t) {
+		this->ambient = ambient;
+		this->diffuse = diffuse;
+		this->specular = specular;
+		this->specular_exp = exp;
+		this->Ka = 1.0;
+		this->Kd = 1.0;
+		this->Ks = 0.9;
+		this->texture = nullptr;
+		this->n_refr = n;
+		this->transmittance = t;
+	}
 	
 	// Ambient components for Phong shading.
 	Color ambient;

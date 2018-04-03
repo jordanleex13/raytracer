@@ -40,6 +40,8 @@ External reference:
   https://en.wikipedia.org/wiki/UV_mapping
 - Various formulas for intersection and ray tracing
   http://www.teach.cs.toronto.edu/~moore/csc418/Notes/BasicRayTracing.pdf
+- Glossy reflection information
+  http://www.raytracegroundup.com/downloads/Chapter25.pdf
 
 Role of each member:
 Ginny is responsible for implementing hard shadow, anti-aliasing, depth of field, refraction and Fresnel law.
