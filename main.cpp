@@ -91,33 +91,19 @@ void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& s
     std::cout << "Rendering infinite mirror scene" << std::endl;
     double fov = 60.0;
     double aperture = 0.6;
-    double focalLength = 12.0;
+    double focalLength = 6.0;
     double focalRange = 4.0;
 
     PointLight *pLight1 = new PointLight(Point3D(25, -10, 10), Color(0.9, 0.9, 0.9));
     light_list.push_back(pLight1);
 
     Color dim(0.1, 0.1, 0.1);
-    Color bright(1.0, 1.0, 1.0);
-    Material diffuseR(Color(0.2, 0.0, 0.0), Color(0.7, 0.0, 0.0), dim, 1.0);
-    Material diffuseG(Color(0.0, 0.2, 0.0), Color(0.0, 0.7, 0.0), dim, 1.0);
-    Material diffuseB(Color(0.0, 0.0, 0.2), Color(0.0, 0.0, 0.7), dim, 1.0);
-    Material diffuseY(Color(0.2, 0.2, 0.0), Color(0.9, 0.7, 0.0), dim, 1.0);
 
-    Material white(dim, bright, dim, 1.0);
+    Material babyblue(Color(0.05, 0.15, 0.2), Color(0, 0.4, 0.6), dim, 1.0);
     Material mirror(Color(0.001, 0.001, 0.001), Color(0.0, 0.0, 0.0), Color(0.999, 0.999, 0.999), 10000.0);
 
-    Texture textureBoard = Texture("resources/texture_board.bmp");
-    Texture textureFloor = Texture("resources/texture_floor.bmp");
-
-    Material board(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 1.0);
-    Material floor_mat(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 10.0);
-
-    board.texture = &textureBoard;
-    floor_mat.texture = &textureFloor;
-
     /* Walls */
-    SceneNode *floor = new SceneNode(new UnitSquare(), &white);
+    SceneNode *floor = new SceneNode(new UnitSquare(), &babyblue);
     SceneNode *ceiling = new SceneNode(new UnitSquare(), &mirror);
     SceneNode *backWall = new SceneNode(new UnitSquare(), &mirror);
     SceneNode *frontWall = new SceneNode(new UnitSquare(), &mirror);
@@ -158,19 +144,23 @@ void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& s
     Texture textureEarth = Texture("resources/texture_earth.bmp");
     Texture textureGranite = Texture("resources/texture_granite.bmp");
     Texture textureIce = Texture("resources/texture_ice.bmp");
+    Texture textureRainbow = Texture("resources/texture_rainbow.bmp");
 
     Material earth(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 1.0);
     Material granite(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 10.0);
     Material ice(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 10.0);
+    Material rainbow(Color(0.2, 0.2, 0.2), Color(0.9, 0.9, 0.9), dim, 10.0);
     earth.texture = &textureEarth;
     granite.texture = &textureGranite;
     ice.texture = &textureIce;
+    rainbow.texture = &textureRainbow;
 
     Material transparent(Color(0.2, 0.2, 0.2), Color(1.0, 1.0, 1.0), Color(0.5, 0.5, 0.5), 1.0, 1.33, 0.95);
 
     SceneNode *globe = new SceneNode(new UnitSphere(), &earth);
     SceneNode *stone = new SceneNode(new UnitSphere(), &granite);
     SceneNode *iceball = new SceneNode(new UnitSphere(), &ice);
+    SceneNode *colorfulball = new SceneNode(new UnitSphere(), &rainbow);
     SceneNode *mirrorSphere1 = new SceneNode(new UnitSphere(), &mirror);
     SceneNode *mirrorSphere2 = new SceneNode(new UnitSphere(), &mirror);
     SceneNode *glassSphere = new SceneNode(new UnitSphere(), &transparent);
@@ -178,6 +168,7 @@ void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& s
     scene.push_back(globe);
     scene.push_back(stone);
     scene.push_back(iceball);
+    scene.push_back(colorfulball);
     scene.push_back(mirrorSphere1);
     scene.push_back(mirrorSphere2);
     scene.push_back(glassSphere);
@@ -190,27 +181,33 @@ void scene_infinite_mirror(Raytracer& raytracer, LightList& light_list, Scene& s
     globe->translate(Vector3D(-2.5, 3, 3.0));  // had to make all this negative to account for rotation
 
     mirrorSphere1->scale(origin, sphereScale);
-    mirrorSphere1->translate(Vector3D(4, -2.5, 1));
+    mirrorSphere1->translate(Vector3D(4, -2.5, 1.5));
 
     mirrorSphere2->scale(origin, sphereScale);
-    mirrorSphere2->translate(Vector3D(1, -1, 3.5));
+    mirrorSphere2->translate(Vector3D(1, -1.5, 3.5));
 
     stone->scale(origin, sphereScale);
-    stone->translate(Vector3D(4, 0.5, 2.5));
+    stone->translate(Vector3D(4, 0.5, 2.0));
 
     iceball->scale(origin, sphereScale);
-    iceball->translate(Vector3D(4, 2.0, 4.0));
+    iceball->translate(Vector3D(4, 2.5, 4.0));
+
+    colorfulball->scale(origin, sphereScale);
+    colorfulball->translate(Vector3D(4.5, 0, 4.5));
 
     double smallScale[3] = {1.5, 1.5, 1.5};
     double largeScale[3] = {4.0, 4.0, 4.0};
     glassSphere->scale(origin, largeScale);
     glassSphere->translate(Vector3D(4.0, 1.5, 2.0));
 
-    Point3D cameraPositions[2] = {Point3D(35, 0, 10),Point3D(55, 4, 10)};
+    Point3D cameraPositions[3] = {Point3D(20, -10, 10), Point3D(35, 0, 10), Point3D(55, 4, 20)};
+    Point3D viewDir[3] = {Point3D(0,0,-4), Point3D(0,0,8), Point3D(0,0,8)};
+    double focalLengths[3] = {2, 6, 12};
+    double focalRanges[3] = {4, 4, 4};
     for (int i = 0; i < NELEMS(cameraPositions); i++) {
         Point3D cameraPos = cameraPositions[i];
         // look slightly above floor
-        Camera camera1(cameraPos, Point3D(0, 0, 8) - cameraPos, Vector3D(0, 0, 1), fov, aperture, focalLength, focalRange);
+        Camera camera1(cameraPos, viewDir[i] - cameraPos, Vector3D(0, 0, 1), fov, aperture, focalLengths[i], focalRanges[i]);
         Image image1(width, height);
         raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
 

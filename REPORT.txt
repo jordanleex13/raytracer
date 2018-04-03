@@ -12,13 +12,17 @@ Basic features:
 
 Advanced features:
 - Recursive ray tracing
-- Anti-aliasing
+- Anti-aliasing:
+	Achieved by shooting more rays per pixel and averaging the colors.
 - Depth of field 
+	Achieved by shading each pixel with more rays that starts at random places on lens and points to the focal point. 
 - Extended light source, soft shadow
 - Texure mapping
 - Reflection
 - Refraction
+	Achieved by applying snell's law.
 - Fresnel law
+	Balanced between refraction and reflection color using fresnel law.
 - Glossy effect
 
 External reference:
@@ -30,6 +34,6 @@ External reference:
   http://www.teach.cs.toronto.edu/~moore/csc418/Notes/BasicRayTracing.pdf
 
 Role of each member:
-Ginny is responsible for implementing anti-aliasing, depth of field, refraction and Fresnel law.
-Jordan is responsible for setting up basic ray tracing, implementing recursive ray tracing, soft shadows, texture mapping, reflection and glossy effect.
+Ginny is responsible for implementing hard shadow, anti-aliasing, depth of field, refraction and Fresnel law.
+Jordan is responsible for implementing basic ray tracing, recursive ray tracing, soft shadows, texture mapping, reflection and glossy effect.
 Both two members worked together in setting up scenes and testing features.

@@ -12,9 +12,10 @@
 #include "raytracer.h"
 
 #define EPSILON 0.0001
+#define SHADOW_INTENSITY 0.4 // set to 1.0 for default
 
 
-#define MULTITHREADING // Toggle option for multithreading 
+// #define MULTITHREADING // Toggle option for multithreading 
 
 #ifdef MULTITHREADING
 #include <omp.h>
@@ -25,21 +26,21 @@
 
 /***** FEATURES *****/
 
-// Turning on ANTI_ALIASING will disable DOF feature automatically
+#define DEPTH 3  // number of bounces before ray dies
 
-#define ANTI_ALIASING
-#define NUM_ANTIALIASING_RAY 3
+// #define ANTI_ALIASING
+// #define NUM_ANTIALIASING_RAY 5
 
 // #define DOF
 // #define NUM_RAND_DOF_RAY 3
 
-#define SHADOWING
-#define SOFT_SHADOWS
+// #define SHADOWING
+// #define SOFT_SHADOWS
 
-#define REFLECTION
-#define GLOSSY
+// #define REFLECTION
+// #define GLOSSY
 
-#define REFRACTION
+// #define REFRACTION
 
 void Raytracer::traverseScene(Scene &scene, Ray3D &ray) {
     for (size_t i = 0; i < scene.size(); ++i) {
@@ -96,7 +97,7 @@ void Raytracer::computeShading(Ray3D &ray, Scene &scene, LightList &light_list) 
             if (reverseRay.intersection.t_value <= distToLight) {
                 double transmittance = reverseRay.intersection.mat->transmittance;
                 if (!transmittance) {
-                    ray.col = ray.intersection.mat->ambient;    // overwrites ray colour
+                    ray.col = (1.0 - SHADOW_INTENSITY) * ray.col + SHADOW_INTENSITY * ray.intersection.mat->ambient;    // overwrites ray colour
                 } else {
                     ray.col = transmittance * ray.col + (1 - transmittance) * ray.intersection.mat->ambient;
                 }
@@ -257,7 +258,6 @@ void Raytracer::render(Camera &camera, Scene &scene, LightList &light_list, Imag
     Point3D origin(0, 0, 0);
 
 #pragma omp parallel for if(parallelism_enabled)
-    int depth = 10;  // number of bounces before ray dies
     // Construct a ray for each pixel.
     for (int i = 0; i < image.height; i++) {
         for (int j = 0; j < image.width; j++) {
@@ -291,7 +291,7 @@ void Raytracer::render(Camera &camera, Scene &scene, LightList &light_list, Imag
                     ray.origin = viewToWorld * ray.origin;
                     ray.dir = viewToWorld * ray.dir;
 
-                    Color subcol = shadeRay(ray, scene, light_list, depth);
+                    Color subcol = shadeRay(ray, scene, light_list, 1);
                     col[0] += subcol[0]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY;
                     col[1] += subcol[1]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY;
                     col[2] += subcol[2]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY;
@@ -302,7 +302,7 @@ void Raytracer::render(Camera &camera, Scene &scene, LightList &light_list, Imag
             ray.origin = viewToWorld * ray.origin;
             ray.dir = viewToWorld * ray.dir;
 
-            col = shadeRay(ray, scene, light_list, depth);
+            col = shadeRay(ray, scene, light_list, DEPTH);
 #endif
 #endif
 
@@ -326,7 +326,6 @@ void Raytracer::render(Camera &camera, Scene &scene, LightList &light_list, Imag
                     Point3D focal = ray.origin + camera.focalLength*ray.dir;
                     for(int a = 0; a < NUM_RAND_DOF_RAY; a++){
                         for(int b = 0; b < NUM_RAND_DOF_RAY; b++){
-                            // std::cout << "antialiasing: (" << m << ", " << n <<")" <<"dof: (" << a << ", " << b << ")" << std::endl; 
                             rand_on_lens[0] = origin[0] + camera.aperture/NUM_RAND_DOF_RAY*(a+0.5);
                             rand_on_lens[1] = origin[1] + camera.aperture/NUM_RAND_DOF_RAY*(b+0.5);
 
@@ -339,10 +338,10 @@ void Raytracer::render(Camera &camera, Scene &scene, LightList &light_list, Imag
                             ray.origin = viewToWorld * ray.origin;
                             ray.dir = viewToWorld * ray.dir;
 
-                            Color subcol = shadeRay(ray, scene, light_list, depth);
-                            col[0] += subcol[0]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY/ NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
-                            col[1] += subcol[1]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY/ NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
-                            col[2] += subcol[2]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY/ NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
+                            Color subcol = shadeRay(ray, scene, light_list, DEPTH);
+                            col[0] += subcol[0]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;
+                            col[1] += subcol[1]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;
+                            col[2] += subcol[2]/NUM_RAND_DOF_RAY/NUM_RAND_DOF_RAY/NUM_ANTIALIASING_RAY/NUM_ANTIALIASING_RAY;
                         }
                     }
 #else
@@ -350,7 +349,7 @@ void Raytracer::render(Camera &camera, Scene &scene, LightList &light_list, Imag
                     assert(ray.origin[0] == camera.eye[0] && ray.origin[1] == camera.eye[1] &&
                            ray.origin[2] == camera.eye[2]);
 
-                    Color subcol = shadeRay(ray, scene, light_list, depth);
+                    Color subcol = shadeRay(ray, scene, light_list, DEPTH);
                     col[0] += subcol[0] / NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
                     col[1] += subcol[1] / NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
                     col[2] += subcol[2] / NUM_ANTIALIASING_RAY / NUM_ANTIALIASING_RAY;
